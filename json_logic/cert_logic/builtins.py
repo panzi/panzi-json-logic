@@ -10,6 +10,9 @@ from ..types import Operations
 from ..builtins import to_float, to_string, var, in_, op_less_than, op_less_than_or_equal, op_greater_than, op_greater_than_or_equal
 
 def to_bool(value: Any=None) -> bool:
+    if value is None:
+        return False
+
     if type(value) is bool:
         return value # type: ignore
 
@@ -25,6 +28,9 @@ def to_bool(value: Any=None) -> bool:
     return True
 
 def not_(value: Any=None) -> bool:
+    if value is None:
+        return True
+
     if type(value) is bool:
         return not value
 
@@ -34,7 +40,7 @@ def not_(value: Any=None) -> bool:
         return value == 0.0
 
     if isinstance(value, (str, int, list, dict, bool)):
-        return not bool(value)
+        return not value
 
     # dict, date, datetime
     return False
@@ -103,7 +109,7 @@ def extract_from_uvci(data=None, uvci=None, index=None, *_ignored) -> Optional[s
     return fragments[index] if index < len(fragments) else None
 
 BUILTINS: Operations = {
-    '===': lambda a=None, b=None, *_ignored: a == b,
+    '===': lambda data=None, a=None, b=None, *_ignored: a == b,
     '<':   op_less_than,
     '>':   op_greater_than,
     '<=':  op_less_than_or_equal,

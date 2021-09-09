@@ -120,6 +120,9 @@ def to_string(value: Any) -> str:
     return str(value)
 
 def to_bool(value: Any=None) -> bool:
+    if value is None:
+        return False
+
     if type(value) is bool:
         return value # type: ignore
 
@@ -135,6 +138,9 @@ def to_bool(value: Any=None) -> bool:
     return True
 
 def not_(value: Any=None) -> bool:
+    if value is None:
+        return True
+
     if type(value) is bool:
         return not value
 
@@ -144,7 +150,7 @@ def not_(value: Any=None) -> bool:
         return value == 0.0
 
     if isinstance(value, (str, int, list, bool)):
-        return not bool(value)
+        return not value
 
     # dict, date, datetime
     return False
