@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, List, Iterable, Union
-from datetime import date, datetime, time
+from typing import Any, List, Iterable
+from datetime import date, datetime, time, timezone
 from time import mktime
 from wsgiref.handlers import format_date_time
 from math import isnan
@@ -13,7 +13,7 @@ from .types import JsonValue, Operations
 
 NAN = float('nan')
 NUMERIC = (int, float)
-EPOCH = datetime.utcfromtimestamp(0)
+EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 def equals(data=None, a=None, b=None, *_ignored) -> bool:
     atype = type(a)

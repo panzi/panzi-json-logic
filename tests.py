@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Dict, Optional, List, Any
+from typing import Optional, List, Any
 from os import listdir
 from os.path import dirname, join as joinpath
 from io import StringIO
