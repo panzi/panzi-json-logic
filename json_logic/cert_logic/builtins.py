@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from typing import Any, Optional
-from datetime import datetime, date, time, timedelta, timezone
+from datetime import datetime, date, time, timedelta, timezone, tzinfo
 from math import isnan
 
 import re
 
 from ..types import Operations
 from ..builtins import to_float, to_string, var, in_, op_less_than, op_less_than_or_equal, op_greater_than, op_greater_than_or_equal
+
+DATE_PATTERN = re.compile(r'^(\d{4})-(\d{2})-(\d{2})$')
+DATE_TIME_PATTERN = re.compile(r'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})T(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}(\.\d+?)?)(?:Z|(?:(?P<tzsign>[+-])(?P<tzhour>\d{1,2}):?(?P<tzminute>\d{2})?))?$')
 
 def to_bool(value: Any=None) -> bool:
     if value is None:
@@ -58,12 +61,36 @@ def parse_time(value: Any) -> datetime:
     if isinstance(value, date):
         return datetime.combine(value, time(), timezone.utc)
 
-    value = datetime.fromisoformat(to_string(value))
+    value = to_string(value)
 
-    if value.tzinfo is None:
-        value = value.replace(tzinfo=timezone.utc)
+    match = DATE_PATTERN.match(value)
+    if match:
+        return datetime(int(match[1]), int(match[2]), int(match[3]), tzinfo=timezone.utc)
 
-    return value
+    match = DATE_TIME_PATTERN.match(value)
+    if match is None:
+        raise ValueError(f'illegal date-time string: {value!r}')
+
+    year  = int(match.group('year'))
+    month = int(match.group('month'))
+    day   = int(match.group('day'))
+
+    hour   = int(match.group('hour')     or 0)
+    minute = int(match.group('minute')   or 0)
+    second = float(match.group('second') or 0.0)
+
+    tzsign   = match.group('tzsign') or '+'
+    tzhour   = int(match.group('tzhour')   or 0)
+    tzminute = int(match.group('tzminute') or 0)
+
+    tzoff = tzhour * 60 + tzminute
+    if tzsign == '-':
+        tzoff = -tzoff
+
+    int_second = int(second)
+    return datetime(year, month, day, hour, minute, int_second,
+        int(second * 1_000_000) - int_second * 1_000_000,
+        timezone(timedelta(minutes=tzoff)))
 
 def to_int(value: Any) -> int:
     value = to_float(value)
@@ -108,6 +135,30 @@ def extract_from_uvci(data=None, uvci=None, index=None, *_ignored) -> Optional[s
     fragments = UVCI_SPLIT.split(uvci)
     return fragments[index] if index < len(fragments) else None
 
+def after(data=None, a=None, b=None, c=None, *_ignored):
+    if c is None:
+        return parse_time(a) > parse_time(b)
+
+    return parse_time(a) > parse_time(b) and parse_time(b) > parse_time(c)
+
+def before(data=None, a=None, b=None, c=None, *_ignored):
+    if c is None:
+        return parse_time(a) < parse_time(b)
+
+    return parse_time(a) < parse_time(b) and parse_time(b) < parse_time(c)
+
+def not_after(data=None, a=None, b=None, c=None, *_ignored):
+    if c is None:
+        return parse_time(a) <= parse_time(b)
+
+    return parse_time(a) <= parse_time(b) and parse_time(b) <= parse_time(c)
+
+def not_before(data=None, a=None, b=None, c=None, *_ignored):
+    if c is None:
+        return parse_time(a) >= parse_time(b)
+
+    return parse_time(a) >= parse_time(b) and parse_time(b) >= parse_time(c)
+
 BUILTINS: Operations = {
     '===': lambda data=None, a=None, b=None, *_ignored: a == b,
     '<':   op_less_than,
@@ -118,10 +169,10 @@ BUILTINS: Operations = {
     '+':   add,
     'in':  in_,
     'var': var,
-    'before':     lambda data=None, a=None, b=None, *_ignored: parse_time(a) <  parse_time(b),
-    'not-before': lambda data=None, a=None, b=None, *_ignored: parse_time(a) >= parse_time(b),
-    'after':      lambda data=None, a=None, b=None, *_ignored: parse_time(a) >  parse_time(b),
-    'not-after':  lambda data=None, a=None, b=None, *_ignored: parse_time(a) <= parse_time(b),
+    'before':     before,
+    'not-before': not_before,
+    'after':      after,
+    'not-after':  not_after,
     'plusTime':        plus_time,
     'extractFromUVCI': extract_from_uvci,
 }
