@@ -1,0 +1,198 @@
+{
+  "name": "construction and comparing of date-times ",
+  "cases": [
+    {
+      "name": "comparison of date-times constructed using plusTime",
+      "certLogicExpression": {
+        "before": [
+          {
+            "plusTime": [
+              {
+                "var": ""
+              },
+              0,
+              "day"
+            ]
+          },
+          {
+            "plusTime": [
+              "2021-06-01T00:00:00+00:00",
+              40,
+              "hour"
+            ]
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "data": "2021-06-02T16:00:00+00:00",
+          "expected": false,
+          "message": "exactly 40 hours"
+        },
+        {
+          "data": "2021-06-02T15:59:59+00:00",
+          "expected": true,
+          "message": "just within 40 hours"
+        },
+        {
+          "data": "2021-06-02T00:00:00+00:00",
+          "expected": true,
+          "message": "comfortably within 40 hours"
+        }
+      ]
+    },
+    {
+      "name": "tri-comparison of dates (e.g., for VR-EU-0003)",
+      "certLogicExpression": {
+        "not-after": [
+          {
+            "plusTime": [
+              {
+                "var": "vaccination.date"
+              },
+              14,
+              "day"
+            ]
+          },
+          {
+            "plusTime": [
+              {
+                "var": "dateObject.current"
+              },
+              0,
+              "day"
+            ]
+          },
+          {
+            "plusTime": [
+              {
+                "var": "vaccination.date"
+              },
+              365,
+              "day"
+            ]
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "data": {
+            "dateObject": {
+              "current": "2021-05-02T00:00:00+00:00"
+            },
+            "vaccination": {
+              "date": "2021-05-01T00:00:00+00:00"
+            }
+          },
+          "expected": false
+        },
+        {
+          "data": {
+            "dateObject": {
+              "current": "2021-05-14T00:00:00+00:00"
+            },
+            "vaccination": {
+              "date": "2021-05-01T00:00:00+00:00"
+            }
+          },
+          "expected": false
+        },
+        {
+          "data": {
+            "dateObject": {
+              "current": "2021-05-15T00:00:00+00:00"
+            },
+            "vaccination": {
+              "date": "2021-05-01T00:00:00+00:00"
+            }
+          },
+          "expected": true
+        },
+        {
+          "data": {
+            "dateObject": {
+              "current": "2022-04-30T00:00:00+00:00"
+            },
+            "vaccination": {
+              "date": "2021-05-01T00:00:00+00:00"
+            }
+          },
+          "expected": true
+        },
+        {
+          "data": {
+            "dateObject": {
+              "current": "2022-05-01T00:00:00+00:00"
+            },
+            "vaccination": {
+              "date": "2021-05-01T00:00:00+00:00"
+            }
+          },
+          "expected": true
+        },
+        {
+          "data": {
+            "dateObject": {
+              "current": "2022-05-02T00:00:00+00:00"
+            },
+            "vaccination": {
+              "date": "2021-05-01T00:00:00+00:00"
+            }
+          },
+          "expected": false
+        }
+      ]
+    },
+    {
+      "name": "comparisons of date-times constructed using plusTime across DST transitions",
+      "certLogicExpression": {
+        "not-before": [
+          {
+            "plusTime": [
+              {
+                "var": "d1"
+              },
+              0,
+              "day"
+            ]
+          },
+          {
+            "plusTime": [
+              {
+                "var": "d2"
+              },
+              -180,
+              "day"
+            ]
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "data": {
+            "d1": "2020-12-24",
+            "d2": "2021-06-23T00:00:00Z"
+          },
+          "expected": false,
+          "message": "d1 more than 180 days before d2"
+        },
+        {
+          "data": {
+            "d1": "2020-12-25",
+            "d2": "2021-06-23T00:00:00Z"
+          },
+          "expected": true,
+          "message": "d1 exactly 180 days before d2"
+        },
+        {
+          "data": {
+            "d1": "2020-12-26",
+            "d2": "2021-06-23T00:00:00Z"
+          },
+          "expected": true,
+          "message": "d1 less than 180 days before d2"
+        }
+      ]
+    }
+  ]
+}
