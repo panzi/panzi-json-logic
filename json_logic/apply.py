@@ -58,12 +58,8 @@ def apply(logic: JsonValue, data: JsonValue=None, operations: Operations=BUILTIN
 
         sublogic = args[1]
 
-        filtered = []
-        for item in items:
-            if to_bool(apply(sublogic, item, operations)):
-                filtered.append(item)
-
-        return items
+        filtered = [item for item in items if to_bool(apply(sublogic, item, operations))]
+        return filtered
 
     elif op == 'reduce':
         argc = len(args)
@@ -103,7 +99,7 @@ def apply(logic: JsonValue, data: JsonValue=None, operations: Operations=BUILTIN
             return False
 
         items = apply(args[0], data, operations)
-        if not isinstance(items, list):
+        if not isinstance(items, list) or not items:
             return False
 
         sublogic = args[1]
@@ -140,8 +136,8 @@ def apply(logic: JsonValue, data: JsonValue=None, operations: Operations=BUILTIN
         ops = operations
         for index, prop in enumerate(props):
             if isinstance(ops, dict) and prop not in ops:
-                raise ReferenceError(f"Unrecognized operation {'.'.join(props[:index + 1])}")
+                raise ReferenceError(f"Unrecognized operation: {'.'.join(props[:index + 1])!r}")
             ops = ops[prop] # type: ignore
         return ops(data, *args) # type: ignore
 
-    raise ReferenceError(f"Unrecognized operation {op}")
+    raise ReferenceError(f"Unrecognized operation: {op!r}")

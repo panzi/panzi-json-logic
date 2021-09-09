@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, List, Iterable
+from typing import Any, List, Iterable, Union
 from datetime import date, datetime, time
 from time import mktime
 from wsgiref.handlers import format_date_time
 from math import isnan
 
 import json
+import sys
 
 from .types import JsonValue, Operations
 
@@ -113,9 +114,12 @@ def to_string(value: Any) -> str:
     if isinstance(value, (date, datetime)):
         return format_date_time(mktime(value.timetuple()))
 
+    if isinstance(value, float):
+        return '%.15g' % value
+
     return str(value)
 
-def to_bool(data=None, value: Any=None) -> bool:
+def to_bool(value: Any=None) -> bool:
     if type(value) is bool:
         return value # type: ignore
 
@@ -130,7 +134,7 @@ def to_bool(data=None, value: Any=None) -> bool:
     # dict, date, datetime
     return True
 
-def not_(data=None, value: Any=None) -> bool:
+def not_(value: Any=None) -> bool:
     if type(value) is bool:
         return not value
 
@@ -165,10 +169,11 @@ def json_default(arg: Any) -> JsonValue:
     raise TypeError(f'unhandled type: {argtype.__module__}.{argtype.__name__}')
 
 def log(data=None, arg: Any=None, *_ignored) -> Any:
-    print(json.dumps(arg, default=json_default))
+    json.dump(arg, sys.stdout, default=json_default)
+    sys.stdout.write('\n')
     return arg
 
-def less_than(data=None, a=None, b=None, *_ignored) -> bool:
+def less_than(a, b) -> bool:
     if isinstance(a, NUMERIC):
         return a < to_float(b)
 
@@ -183,7 +188,13 @@ def less_than(data=None, a=None, b=None, *_ignored) -> bool:
 
     return to_float(a) < to_float(b)
 
-def greater_than(data=None, a=None, b=None, *_ignored) -> bool:
+def op_less_than(data=None, a=None, b=None, c=None, *_ignored) -> bool:
+    if c is None:
+        return less_than(a, b)
+    
+    return less_than(a, b) and less_than(b, c)
+
+def greater_than(a, b) -> bool:
     if isinstance(a, NUMERIC):
         return a > to_float(b)
 
@@ -198,7 +209,13 @@ def greater_than(data=None, a=None, b=None, *_ignored) -> bool:
 
     return to_float(a) > to_float(b)
 
-def less_than_or_equal(data=None, a=None, b=None, *_ignored) -> bool:
+def op_greater_than(data=None, a=None, b=None, c=None, *_ignored) -> bool:
+    if c is None:
+        return greater_than(a, b)
+    
+    return greater_than(a, b) and greater_than(b, c)
+
+def less_than_or_equal(a, b) -> bool:
     if isinstance(a, NUMERIC):
         return a <= to_float(b)
 
@@ -213,7 +230,13 @@ def less_than_or_equal(data=None, a=None, b=None, *_ignored) -> bool:
 
     return to_float(a) <= to_float(b)
 
-def greater_than_or_equal(data=None, a=None, b=None, *_ignored) -> bool:
+def op_less_than_or_equal(data=None, a=None, b=None, c=None, *_ignored) -> bool:
+    if c is None:
+        return less_than_or_equal(a, b)
+    
+    return less_than_or_equal(a, b) and less_than_or_equal(b, c)
+
+def greater_than_or_equal(a, b) -> bool:
     if isinstance(a, NUMERIC):
         return a >= to_float(b)
 
@@ -227,6 +250,12 @@ def greater_than_or_equal(data=None, a=None, b=None, *_ignored) -> bool:
         return to_string(a) >= b
 
     return to_float(a) >= to_float(b)
+
+def op_greater_than_or_equal(data=None, a=None, b=None, c=None, *_ignored) -> bool:
+    if c is None:
+        return greater_than_or_equal(a, b)
+    
+    return greater_than_or_equal(a, b) and greater_than_or_equal(b, c)
 
 def substr(data=None, string=None, index=None, length=None, *_ignored) -> str:
     string = to_string(string)
@@ -332,13 +361,49 @@ def missing_some(data=None, need_count: Any=0, keys: Any=None, *_ignored) -> Lis
 def var(data=None, key=None, default=None) -> Any:
     if key is None or key == '':
         return data
-    
-    props = to_string(key).split('.')
-    for prop in props:
-        if data is None:
+
+    if isinstance(key, (int, float)):
+        if isinstance(data, (list, str)):
+            try:
+                index = int(key)
+            except ValueError:
+                return default
+
+            if index != key or index < 0 or index >= len(data):
+                return default
+
+            return data[index]
+
+        elif isinstance(data, dict):
+            data = data.get(key)
+            if data is None:
+                return default
+
+        else:
             return default
 
-        data = data.get(prop)
+    props: List[str] = to_string(key).split('.')
+
+    for prop in props:
+        if isinstance(data, (list, str)):
+            if prop == 'length':
+                # emulate JavaScript behavior
+                return len(data)
+
+            try:
+                index = int(prop, 10)
+            except ValueError:
+                return default
+
+            if prop != str(index) or index < 0 or index >= len(data):
+                # emulate JavaScript behavior
+                return default
+
+            data = data[index]
+        elif isinstance(data, dict):
+            data = data.get(prop)
+        else:
+            return default
 
     if data is None:
         return default
@@ -354,29 +419,36 @@ def merge(data=None, *args: Any) -> List[Any]:
             items.append(arg)
     return items
 
-def in_(a=None, b=None, *_ignored) -> bool:
-    return a in b if isinstance(a, list) else False
+def in_(data=None, needle=None, haystack=None, *_ignored) -> bool:
+    if isinstance(haystack, list):
+        return needle in haystack
+        
+    if isinstance(haystack, str):
+        return to_string(needle) in haystack
+
+    return False
 
 BUILTINS: Operations = {
     '==':  equals,
-    '!=':  lambda a=None, b=None, *_ignored: not equals(a, b),
-    '===': lambda a=None, b=None, *_ignored: a == b,
-    '!==': lambda a=None, b=None, *_ignored: a != b,
-    '<':   less_than,
-    '>':   greater_than,
-    '<=':  less_than_or_equal,
-    '>=':  greater_than_or_equal,
-    '!':   not_,
-    '!!':  to_bool,
+    '!=':  lambda data=None, a=None, b=None, *_ignored: not equals(data, a, b),
+    '===': lambda data=None, a=None, b=None, *_ignored: a == b,
+    '!==': lambda data=None, a=None, b=None, *_ignored: a != b,
+    '<':   op_less_than,
+    '>':   op_greater_than,
+    '<=':  op_less_than_or_equal,
+    '>=':  op_greater_than_or_equal,
+    '!':   lambda data=None, a=None, *_ignored: not_(a),
+    '!!':  lambda data=None, a=None, *_ignored: to_bool(a),
     '+':   add,
     '*':   mul,
-    '-':   lambda a=None, b=None, *_ignored: -to_float(a) if b is None else to_float(a) - to_float(b),
-    '/':   lambda a=None, b=None, *_ignored: to_float(a) / to_float(b),
-    '%':   lambda a=None, b=None, *_ignored: to_float(a) % to_float(b),
+    '-':   lambda data=None, a=None, b=None, *_ignored: -to_float(a) if b is None else to_float(a) - to_float(b),
+    '/':   lambda data=None, a=None, b=None, *_ignored: to_float(a) / to_float(b),
+    '%':   lambda data=None, a=None, b=None, *_ignored: to_float(a) % to_float(b),
     'in':  in_,
-    'min': lambda *args: min(to_float(arg) for arg in args) if args else NAN,
-    'max': lambda *args: max(to_float(arg) for arg in args) if args else NAN,
-    'cat': lambda *args: ','.join(to_string(arg) for arg in args),
+    'min': lambda data=None, *args: min(to_float(arg) for arg in args) if args else NAN,
+    'max': lambda data=None, *args: max(to_float(arg) for arg in args) if args else NAN,
+    'cat': lambda data=None, *args: ''.join(to_string(arg) for arg in args),
+    'log': log,
     'var': var,
     'substr':       substr,
     'merge':        merge,

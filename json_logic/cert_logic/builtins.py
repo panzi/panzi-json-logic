@@ -7,9 +7,9 @@ from math import isnan
 import re
 
 from ..types import Operations
-from ..builtins import to_float, to_string, var, in_, less_than, less_than_or_equal, greater_than, greater_than_or_equal
+from ..builtins import to_float, to_string, var, in_, op_less_than, op_less_than_or_equal, op_greater_than, op_greater_than_or_equal
 
-def to_bool(data=None, value: Any=None) -> bool:
+def to_bool(value: Any=None) -> bool:
     if type(value) is bool:
         return value # type: ignore
 
@@ -24,7 +24,7 @@ def to_bool(data=None, value: Any=None) -> bool:
     # dict, date, datetime
     return True
 
-def not_(data=None, value: Any=None) -> bool:
+def not_(value: Any=None) -> bool:
     if type(value) is bool:
         return not value
 
@@ -104,11 +104,11 @@ def extract_from_uvci(data=None, uvci=None, index=None, *_ignored) -> Optional[s
 
 BUILTINS: Operations = {
     '===': lambda a=None, b=None, *_ignored: a == b,
-    '<':   less_than,
-    '>':   greater_than,
-    '<=':  less_than_or_equal,
-    '>=':  greater_than_or_equal,
-    '!':   not_,
+    '<':   op_less_than,
+    '>':   op_greater_than,
+    '<=':  op_less_than_or_equal,
+    '>=':  op_greater_than_or_equal,
+    '!':   lambda data=None, a=None, *_ignored: not_(a),
     '+':   add,
     'in':  in_,
     'var': var,
