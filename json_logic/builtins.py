@@ -336,7 +336,7 @@ def op_substr_utf16(data=None, string=None, index=None, length=None, *_ignored) 
             else:
                 end_index = index + length
 
-    return string[index:end_index].tobytes().decode('UTF-16BE', errors='ignore')
+    return string[index:end_index].tobytes().decode('UTF-16BE', errors='replace')
 
 def op_missing(data=None, *args: Any) -> List[str]:
     keys: Iterable[Any]

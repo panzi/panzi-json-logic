@@ -12,7 +12,8 @@ import re
 
 from json_logic import jsonLogic, certLogic
 from json_logic.types import Operations
-from json_logic.builtins import BUILTINS as JSONLOGIC_BUILTINS
+from json_logic.builtins import BUILTINS as JSONLOGIC_BUILTINS, op_substr_utf16
+from json_logic.extras import EXTRAS
 from json_logic.cert_logic.builtins import BUILTINS as CERTLOGIC_BUILTINS
 
 NON_IDENT = re.compile('[^_a-zA-Z0-9]+')
@@ -208,6 +209,21 @@ class BasicTests(unittest.TestCase):
         i = []
         jsonLogic({"or": [{"push": [True]}, {"push": [True]}]}, operations=ops)
         self.assertListEqual(i, [True])
+
+    def test_substr(self):
+        """
+        Sub-string of non-ASCII strings
+        """
+        self.assertEqual(jsonLogic({"substr": ["äöü", 0, -2]}), "ä")
+
+        # can't have invalid unicode in Pytohn, so instread we get the replacement character
+        ops = { **JSONLOGIC_BUILTINS, 'substr': op_substr_utf16 }
+        logic = json.loads("{\"substr\": [\"\\uD80C\\uDC00\", 1]}")
+        self.assertEqual(jsonLogic(logic, operations=ops), '\ufffd')
+
+    def test_extras(self):
+        self.assertEqual(jsonLogic({"zip": [[1,2,3],["a","b"]]}, operations=EXTRAS), [[1,"a"],[2,"b"]])
+        # TODO: test more
 
 class JsonLogicTests(unittest.TestCase):
     pass

@@ -44,5 +44,5 @@ EXTRAS: Operations = {
     'formatTime': lambda data=None, value=None, *_ignored: parse_time(value).isoformat(),
     'timeSince':  op_time_since,
     'combinations': lambda data=None, *lists: combinations(*lists), # type: ignore
-    'zip': lambda data=None, *lists: list(zip(*lists)),
+    'zip': lambda data=None, *lists: [list(item) for item in zip(*lists)],
 }
