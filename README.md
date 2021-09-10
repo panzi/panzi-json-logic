@@ -7,7 +7,7 @@ implementation.
 
 There are already other JsonLogic implementations in Python, but last I looked
 they don't emulate all the JavaScript operator behaviors quite right and they
-don't implement CertLogic.
+don't implement CertLogic at all.
 
 Remarks
 -------
@@ -18,11 +18,11 @@ JsonLogic: The `substr` operator in this implementation operates on code points,
 but in json-logic-js it operates on UTF-16 code units. To emulate this in
 Python I would need to do an UTF-16 encode/decode round-trip in `substr`, and
 even then there are differences where Python disallows broken UTF-16, but
-JavaScript doesn't.
+JavaScript allows it.
 
-But if you really want that behavior this library provides an alternative
-`substr` implementation that does the UTF-16 round-trip. You can use it like
-this:
+But if you really want the JavaScript behavior this library provides an
+alternative `substr` implementation that does the UTF-16 round-trip. You can use
+it like this:
 
 ```Python
 from json_logic import jsonLogic
@@ -34,4 +34,6 @@ result = jsonLogic(logic, data, { **BUILTINS, 'substr': op_substr_utf16 })
 TODO
 ----
 
-**Testing!** (-> and bug fixing)
+* (more) documentation
+* even more testing (it already passes the JsonLogic and CertLogic test suites)
+* pypi package
