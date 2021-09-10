@@ -16,7 +16,7 @@ NAN = float('nan')
 NUMERIC = (int, float)
 EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
-def equals(data=None, a=None, b=None, *_ignored) -> bool:
+def op_equals(data=None, a=None, b=None, *_ignored) -> bool:
     atype = type(a)
     if atype is type(b):
         if atype in (list, dict):
@@ -159,13 +159,13 @@ def not_(value: Any=None) -> bool:
     # dict, date, datetime
     return False
 
-def add(data=None, *args: Any) -> Union[float, int]:
+def op_add(data=None, *args: Any) -> Union[float, int]:
     value: Union[float, int] = 0
     for arg in args:
         value += to_number(arg)
     return value
 
-def mul(data=None, *args: Any) -> Union[float, int]:
+def op_mul(data=None, *args: Any) -> Union[float, int]:
     value: Union[float, int] = 1
     for arg in args:
         value *= to_number(arg)
@@ -178,7 +178,7 @@ def json_default(arg: Any) -> JsonValue:
     argtype = type(arg)
     raise TypeError(f'unhandled type: {argtype.__module__}.{argtype.__name__}')
 
-def log(data=None, arg: Any=None, *_ignored) -> Any:
+def op_log(data=None, arg: Any=None, *_ignored) -> Any:
     json.dump(arg, sys.stdout, default=json_default)
     sys.stdout.write('\n')
     return arg
@@ -267,7 +267,7 @@ def op_greater_than_or_equal(data=None, a=None, b=None, c=None, *_ignored) -> bo
     
     return greater_than_or_equal(a, b) and greater_than_or_equal(b, c)
 
-def substr(data=None, string=None, index=None, length=None, *_ignored) -> str:
+def op_substr(data=None, string=None, index=None, length=None, *_ignored) -> str:
     string = to_string(string)
     index  = to_number(index)
 
@@ -339,7 +339,7 @@ def substr_utf16(data=None, string=None, index=None, length=None, *_ignored) -> 
 
     return string[index:end_index].tobytes().decode('UTF-16BE', errors='ignore')
 
-def missing(data=None, *args: Any) -> List[str]:
+def op_missing(data=None, *args: Any) -> List[str]:
     keys: Iterable[Any]
     if args:
         arg0 = args[0]
@@ -353,24 +353,24 @@ def missing(data=None, *args: Any) -> List[str]:
     missing_keys: List[str] = []
 
     for key in keys:
-        value = var(data, key)
+        value = op_var(data, key)
         if value is None or value == '':
             missing_keys.append(key)
 
     return missing_keys
 
-def missing_some(data=None, need_count: Any=0, keys: Any=None, *_ignored) -> List[str]:
+def op_missing_some(data=None, need_count: Any=0, keys: Any=None, *_ignored) -> List[str]:
     if not isinstance(keys, list):
         return []
 
     need_count = to_number(need_count)
-    missing_keys = missing(data, keys)
+    missing_keys = op_missing(data, keys)
     if len(keys) - len(missing_keys) >= need_count:
         return []
     
     return missing_keys
 
-def var(data=None, key=None, default=None) -> Any:
+def op_var(data=None, key=None, default=None) -> Any:
     if key is None or key == '':
         return data
 
@@ -422,7 +422,7 @@ def var(data=None, key=None, default=None) -> Any:
 
     return data
 
-def merge(data=None, *args: Any) -> List[Any]:
+def op_merge(data=None, *args: Any) -> List[Any]:
     items: List[Any] = []
     for arg in args:
         if isinstance(arg, list):
@@ -431,7 +431,7 @@ def merge(data=None, *args: Any) -> List[Any]:
             items.append(arg)
     return items
 
-def in_(data=None, needle=None, haystack=None, *_ignored) -> bool:
+def op_in(data=None, needle=None, haystack=None, *_ignored) -> bool:
     if isinstance(haystack, list):
         return needle in haystack
         
@@ -441,8 +441,8 @@ def in_(data=None, needle=None, haystack=None, *_ignored) -> bool:
     return False
 
 BUILTINS: Operations = {
-    '==':  equals,
-    '!=':  lambda data=None, a=None, b=None, *_ignored: not equals(data, a, b),
+    '==':  op_equals,
+    '!=':  lambda data=None, a=None, b=None, *_ignored: not op_equals(data, a, b),
     '===': lambda data=None, a=None, b=None, *_ignored: a == b,
     '!==': lambda data=None, a=None, b=None, *_ignored: a != b,
     '<':   op_less_than,
@@ -451,19 +451,19 @@ BUILTINS: Operations = {
     '>=':  op_greater_than_or_equal,
     '!':   lambda data=None, a=None, *_ignored: not_(a),
     '!!':  lambda data=None, a=None, *_ignored: to_bool(a),
-    '+':   add,
-    '*':   mul,
+    '+':   op_add,
+    '*':   op_mul,
     '-':   lambda data=None, a=None, b=None, *_ignored: -to_number(a) if b is None else to_number(a) - to_number(b),
     '/':   lambda data=None, a=None, b=None, *_ignored: to_number(a) / to_number(b),
     '%':   lambda data=None, a=None, b=None, *_ignored: to_number(a) % to_number(b),
-    'in':  in_,
+    'in':  op_in,
     'min': lambda data=None, *args: min(to_number(arg) for arg in args) if args else NAN,
     'max': lambda data=None, *args: max(to_number(arg) for arg in args) if args else NAN,
     'cat': lambda data=None, *args: ''.join(to_string(arg) for arg in args),
-    'log': log,
-    'var': var,
-    'substr':       substr,
-    'merge':        merge,
-    'missing':      missing, # type: ignore
-    'missing_some': missing_some,
+    'log': op_log,
+    'var': op_var,
+    'substr':       op_substr,
+    'merge':        op_merge,
+    'missing':      op_missing, # type: ignore
+    'missing_some': op_missing_some,
 }

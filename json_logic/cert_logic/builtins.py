@@ -7,7 +7,7 @@ from math import isnan
 import re
 
 from ..types import Operations
-from ..builtins import to_number, to_string, var, in_, op_less_than, op_less_than_or_equal, op_greater_than, op_greater_than_or_equal
+from ..builtins import to_number, to_string, op_var, op_in, op_less_than, op_less_than_or_equal, op_greater_than, op_greater_than_or_equal
 
 DATE_PATTERN = re.compile(r'^(\d{4})-(\d{2})-(\d{2})$')
 DATE_TIME_PATTERN = re.compile(r'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})T(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}(\.\d+?)?)(?:Z|(?:(?P<tzsign>[+-])(?P<tzhour>\d{1,2}):?(?P<tzminute>\d{2})?))?$')
@@ -48,7 +48,7 @@ def not_(value: Any=None) -> bool:
     # dict, date, datetime
     return False
 
-def add(data=None, a=None, b=None, *_ignored) -> float:
+def op_add(data=None, a=None, b=None, *_ignored) -> float:
     return to_number(a) + to_number(b)
 
 def parse_time(value: Any) -> datetime:
@@ -98,7 +98,7 @@ def to_int(value: Any) -> int:
         return 0
     return int(value)
 
-def plus_time(data=None, dtstr=None, value=None, unit=None, *_ignored) -> datetime:
+def op_plus_time(data=None, dtstr=None, value=None, unit=None, *_ignored) -> datetime:
     dt = parse_time(dtstr)
 
     if unit == 'year':
@@ -123,7 +123,7 @@ def plus_time(data=None, dtstr=None, value=None, unit=None, *_ignored) -> dateti
 OPTIONAL_PREFIX = "URN:UVCI:"
 UVCI_SPLIT = re.compile('[/#:]')
 
-def extract_from_uvci(data=None, uvci=None, index=None, *_ignored) -> Optional[str]:
+def op_extract_from_uvci(data=None, uvci=None, index=None, *_ignored) -> Optional[str]:
     index = to_int(index)
     if uvci is None or index < 0:
         return None
@@ -135,25 +135,25 @@ def extract_from_uvci(data=None, uvci=None, index=None, *_ignored) -> Optional[s
     fragments = UVCI_SPLIT.split(uvci)
     return fragments[index] if index < len(fragments) else None
 
-def after(data=None, a=None, b=None, c=None, *_ignored):
+def op_after(data=None, a=None, b=None, c=None, *_ignored):
     if c is None:
         return parse_time(a) > parse_time(b)
 
     return parse_time(a) > parse_time(b) and parse_time(b) > parse_time(c)
 
-def before(data=None, a=None, b=None, c=None, *_ignored):
+def op_before(data=None, a=None, b=None, c=None, *_ignored):
     if c is None:
         return parse_time(a) < parse_time(b)
 
     return parse_time(a) < parse_time(b) and parse_time(b) < parse_time(c)
 
-def not_after(data=None, a=None, b=None, c=None, *_ignored):
+def op_not_after(data=None, a=None, b=None, c=None, *_ignored):
     if c is None:
         return parse_time(a) <= parse_time(b)
 
     return parse_time(a) <= parse_time(b) and parse_time(b) <= parse_time(c)
 
-def not_before(data=None, a=None, b=None, c=None, *_ignored):
+def op_not_before(data=None, a=None, b=None, c=None, *_ignored):
     if c is None:
         return parse_time(a) >= parse_time(b)
 
@@ -166,13 +166,13 @@ BUILTINS: Operations = {
     '<=':  op_less_than_or_equal,
     '>=':  op_greater_than_or_equal,
     '!':   lambda data=None, a=None, *_ignored: not_(a),
-    '+':   add,
-    'in':  in_,
-    'var': var,
-    'before':     before,
-    'not-before': not_before,
-    'after':      after,
-    'not-after':  not_after,
-    'plusTime':        plus_time,
-    'extractFromUVCI': extract_from_uvci,
+    '+':   op_add,
+    'in':  op_in,
+    'var': op_var,
+    'before':     op_before,
+    'not-before': op_not_before,
+    'after':      op_after,
+    'not-after':  op_not_after,
+    'plusTime':        op_plus_time,
+    'extractFromUVCI': op_extract_from_uvci,
 }

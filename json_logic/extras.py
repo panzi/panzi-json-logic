@@ -5,7 +5,7 @@ from .builtins import BUILTINS
 from .types import Operations, JsonValue
 from .cert_logic.builtins import parse_time, to_number
 
-def time_since(data=None, timestamp=None, *_ignored) -> float:
+def op_time_since(data=None, timestamp=None, *_ignored) -> float:
     dt = parse_time(timestamp)
     return (dt - datetime.utcnow().replace(tzinfo=timezone.utc)).total_seconds() * 1000
 
@@ -37,11 +37,12 @@ def combinations(*lists: List[JsonValue]) -> List[List[JsonValue]]:
 
 EXTRAS: Operations = {
     **BUILTINS,
-    'now':       lambda *_ignored: datetime.utcnow().replace(tzinfo=timezone.utc),
-    'hours':     lambda data=None, value=None, *_ignored: to_number(value) * 60 * 60 * 1000,
-    'days':      lambda data=None, value=None, *_ignored: to_number(value) * 24 * 60 * 60 * 1000,
-    'parseTime': lambda data=None, value=None, *_ignored: parse_time(value),
-    'timeSince': time_since,
+    'now':        lambda *_ignored: datetime.utcnow().replace(tzinfo=timezone.utc),
+    'hours':      lambda data=None, value=None, *_ignored: to_number(value) * 60 * 60 * 1000,
+    'days':       lambda data=None, value=None, *_ignored: to_number(value) * 24 * 60 * 60 * 1000,
+    'parseTime':  lambda data=None, value=None, *_ignored: parse_time(value),
+    'formatTime': lambda data=None, value=None, *_ignored: parse_time(value).isoformat(),
+    'timeSince':  op_time_since,
     'combinations': lambda data=None, *lists: combinations(*lists), # type: ignore
-    'zip': lambda data=None, *lists: zip(*lists),
+    'zip': lambda data=None, *lists: list(zip(*lists)),
 }
