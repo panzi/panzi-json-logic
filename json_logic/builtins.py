@@ -5,6 +5,7 @@ from datetime import date, datetime, time, timezone
 from time import mktime
 from wsgiref.handlers import format_date_time
 from math import isnan
+from array import array
 
 import json
 import sys
@@ -299,8 +300,10 @@ def substr(data=None, string=None, index=None, length=None, *_ignored) -> str:
     return string[index:end_index]
 
 def substr_utf16(data=None, string=None, index=None, length=None, *_ignored) -> str:
-    string = to_string(string).encode('UTF-16')
-    index  = to_float(index)
+    string = array('H')
+    string.frombytes(to_string(string).encode('UTF-16BE'))
+
+    index = to_float(index)
 
     strlen = len(string)
     if isnan(index):
@@ -331,7 +334,7 @@ def substr_utf16(data=None, string=None, index=None, length=None, *_ignored) -> 
             else:
                 end_index = index + length
 
-    return string[index:end_index].decode('UTF-16', errors='ignore')
+    return string[index:end_index].tobytes().decode('UTF-16BE', errors='ignore')
 
 def missing(data=None, *args: Any) -> List[str]:
     keys: Iterable[Any]
