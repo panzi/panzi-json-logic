@@ -7,7 +7,7 @@ from math import isnan
 import re
 
 from ..types import Operations
-from ..builtins import to_float, to_string, var, in_, op_less_than, op_less_than_or_equal, op_greater_than, op_greater_than_or_equal
+from ..builtins import to_number, to_string, var, in_, op_less_than, op_less_than_or_equal, op_greater_than, op_greater_than_or_equal
 
 DATE_PATTERN = re.compile(r'^(\d{4})-(\d{2})-(\d{2})$')
 DATE_TIME_PATTERN = re.compile(r'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})T(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}(\.\d+?)?)(?:Z|(?:(?P<tzsign>[+-])(?P<tzhour>\d{1,2}):?(?P<tzminute>\d{2})?))?$')
@@ -49,7 +49,7 @@ def not_(value: Any=None) -> bool:
     return False
 
 def add(data=None, a=None, b=None, *_ignored) -> float:
-    return to_float(a) + to_float(b)
+    return to_number(a) + to_number(b)
 
 def parse_time(value: Any) -> datetime:
     if isinstance(value, datetime):
@@ -93,7 +93,7 @@ def parse_time(value: Any) -> datetime:
         timezone(timedelta(minutes=tzoff)))
 
 def to_int(value: Any) -> int:
-    value = to_float(value)
+    value = to_number(value)
     if isnan(value):
         return 0
     return int(value)
@@ -113,10 +113,10 @@ def plus_time(data=None, dtstr=None, value=None, unit=None, *_ignored) -> dateti
         return dt.replace(year=year, month=month)
 
     if unit == 'day':
-        return dt + timedelta(days=to_float(value))
+        return dt + timedelta(days=to_number(value))
 
     if unit == 'hour':
-        return dt + timedelta(hours=to_float(value))
+        return dt + timedelta(hours=to_number(value))
 
     raise ValueError(f'illegal unit: {unit!r}')
 

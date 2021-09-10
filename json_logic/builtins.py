@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Iterable
+from typing import Any, List, Iterable, Union
 from datetime import date, datetime, time, timezone
 from time import mktime
 from wsgiref.handlers import format_date_time
@@ -26,17 +26,17 @@ def equals(data=None, a=None, b=None, *_ignored) -> bool:
     if isinstance(a, NUMERIC):
         if isinstance(b, NUMERIC):
             return a == b
-        return a == to_float(b)
+        return a == to_number(b)
 
     if isinstance(b, NUMERIC):
-        return to_float(a) == b
+        return to_number(a) == b
 
     if a is None or b is None:
         return False
 
     if isinstance(a, str):
         if isinstance(b, bool):
-            return to_float(a) == to_float(b)
+            return to_number(a) == to_number(b)
 
         if isinstance(b, (list, dict)):
             return a == to_string(b)
@@ -44,7 +44,7 @@ def equals(data=None, a=None, b=None, *_ignored) -> bool:
         raise TypeError
 
     if isinstance(a, bool):
-        return to_float(a) == to_float(b)
+        return to_number(a) == to_number(b)
 
     if isinstance(a, (list, dict)):
         if isinstance(b, (list, dict)):
@@ -54,13 +54,13 @@ def equals(data=None, a=None, b=None, *_ignored) -> bool:
             return to_string(a) == b
 
         if isinstance(b, bool):
-            return to_float(a) == to_float(b)
+            return to_number(a) == to_number(b)
 
         raise TypeError
 
     raise TypeError
 
-def to_float(a: Any) -> float:
+def to_number(a: Any) -> Union[float, int]:
     if a is None:
         return 0.0
 
@@ -70,7 +70,7 @@ def to_float(a: Any) -> float:
         elif len(a) > 1:
             return NAN
         else:
-            return to_float(a[0])
+            return to_number(a[0])
 
     if isinstance(a, dict):
         return NAN
@@ -84,6 +84,9 @@ def to_float(a: Any) -> float:
 
     if isinstance(a, date):
         return (datetime.combine(a, time()) - EPOCH).total_seconds() * 1000.0
+
+    if isinstance(a, NUMERIC):
+        return a
 
     try:
         return float(a)
@@ -156,16 +159,16 @@ def not_(value: Any=None) -> bool:
     # dict, date, datetime
     return False
 
-def add(data=None, *args: Any) -> float:
-    value = 0.0
+def add(data=None, *args: Any) -> Union[float, int]:
+    value: Union[float, int] = 0
     for arg in args:
-        value += to_float(arg)
+        value += to_number(arg)
     return value
 
-def mul(data=None, *args: Any) -> float:
-    value = 1.0
+def mul(data=None, *args: Any) -> Union[float, int]:
+    value: Union[float, int] = 1
     for arg in args:
-        value *= to_float(arg)
+        value *= to_number(arg)
     return value
 
 def json_default(arg: Any) -> JsonValue:
@@ -182,10 +185,10 @@ def log(data=None, arg: Any=None, *_ignored) -> Any:
 
 def less_than(a, b) -> bool:
     if isinstance(a, NUMERIC):
-        return a < to_float(b)
+        return a < to_number(b)
 
     if isinstance(b, NUMERIC):
-        return to_float(a) < b
+        return to_number(a) < b
 
     if isinstance(a, str):
         return a < to_string(b)
@@ -193,7 +196,7 @@ def less_than(a, b) -> bool:
     if isinstance(b, str):
         return to_string(a) < b
 
-    return to_float(a) < to_float(b)
+    return to_number(a) < to_number(b)
 
 def op_less_than(data=None, a=None, b=None, c=None, *_ignored) -> bool:
     if c is None:
@@ -203,10 +206,10 @@ def op_less_than(data=None, a=None, b=None, c=None, *_ignored) -> bool:
 
 def greater_than(a, b) -> bool:
     if isinstance(a, NUMERIC):
-        return a > to_float(b)
+        return a > to_number(b)
 
     if isinstance(b, NUMERIC):
-        return to_float(a) > b
+        return to_number(a) > b
 
     if isinstance(a, str):
         return a > to_string(b)
@@ -214,7 +217,7 @@ def greater_than(a, b) -> bool:
     if isinstance(b, str):
         return to_string(a) > b
 
-    return to_float(a) > to_float(b)
+    return to_number(a) > to_number(b)
 
 def op_greater_than(data=None, a=None, b=None, c=None, *_ignored) -> bool:
     if c is None:
@@ -224,10 +227,10 @@ def op_greater_than(data=None, a=None, b=None, c=None, *_ignored) -> bool:
 
 def less_than_or_equal(a, b) -> bool:
     if isinstance(a, NUMERIC):
-        return a <= to_float(b)
+        return a <= to_number(b)
 
     if isinstance(b, NUMERIC):
-        return to_float(a) <= b
+        return to_number(a) <= b
 
     if isinstance(a, str):
         return a <= to_string(b)
@@ -235,7 +238,7 @@ def less_than_or_equal(a, b) -> bool:
     if isinstance(b, str):
         return to_string(a) <= b
 
-    return to_float(a) <= to_float(b)
+    return to_number(a) <= to_number(b)
 
 def op_less_than_or_equal(data=None, a=None, b=None, c=None, *_ignored) -> bool:
     if c is None:
@@ -245,10 +248,10 @@ def op_less_than_or_equal(data=None, a=None, b=None, c=None, *_ignored) -> bool:
 
 def greater_than_or_equal(a, b) -> bool:
     if isinstance(a, NUMERIC):
-        return a >= to_float(b)
+        return a >= to_number(b)
 
     if isinstance(b, NUMERIC):
-        return to_float(a) >= b
+        return to_number(a) >= b
 
     if isinstance(a, str):
         return a >= to_string(b)
@@ -256,7 +259,7 @@ def greater_than_or_equal(a, b) -> bool:
     if isinstance(b, str):
         return to_string(a) >= b
 
-    return to_float(a) >= to_float(b)
+    return to_number(a) >= to_number(b)
 
 def op_greater_than_or_equal(data=None, a=None, b=None, c=None, *_ignored) -> bool:
     if c is None:
@@ -266,7 +269,7 @@ def op_greater_than_or_equal(data=None, a=None, b=None, c=None, *_ignored) -> bo
 
 def substr(data=None, string=None, index=None, length=None, *_ignored) -> str:
     string = to_string(string)
-    index  = to_float(index)
+    index  = to_number(index)
 
     strlen = len(string)
     if isnan(index):
@@ -285,7 +288,7 @@ def substr(data=None, string=None, index=None, length=None, *_ignored) -> str:
     if length is None:
         end_index = strlen
     else:
-        length = to_float(length)
+        length = to_number(length)
         if isnan(length):
             end_index = index
         else:
@@ -303,7 +306,7 @@ def substr_utf16(data=None, string=None, index=None, length=None, *_ignored) -> 
     string = array('H')
     string.frombytes(to_string(string).encode('UTF-16BE'))
 
-    index = to_float(index)
+    index = to_number(index)
 
     strlen = len(string)
     if isnan(index):
@@ -322,7 +325,7 @@ def substr_utf16(data=None, string=None, index=None, length=None, *_ignored) -> 
     if length is None:
         end_index = strlen
     else:
-        length = to_float(length)
+        length = to_number(length)
         if isnan(length):
             end_index = index
         else:
@@ -360,7 +363,7 @@ def missing_some(data=None, need_count: Any=0, keys: Any=None, *_ignored) -> Lis
     if not isinstance(keys, list):
         return []
 
-    need_count = to_float(need_count)
+    need_count = to_number(need_count)
     missing_keys = missing(data, keys)
     if len(keys) - len(missing_keys) >= need_count:
         return []
@@ -450,12 +453,12 @@ BUILTINS: Operations = {
     '!!':  lambda data=None, a=None, *_ignored: to_bool(a),
     '+':   add,
     '*':   mul,
-    '-':   lambda data=None, a=None, b=None, *_ignored: -to_float(a) if b is None else to_float(a) - to_float(b),
-    '/':   lambda data=None, a=None, b=None, *_ignored: to_float(a) / to_float(b),
-    '%':   lambda data=None, a=None, b=None, *_ignored: to_float(a) % to_float(b),
+    '-':   lambda data=None, a=None, b=None, *_ignored: -to_number(a) if b is None else to_number(a) - to_number(b),
+    '/':   lambda data=None, a=None, b=None, *_ignored: to_number(a) / to_number(b),
+    '%':   lambda data=None, a=None, b=None, *_ignored: to_number(a) % to_number(b),
     'in':  in_,
-    'min': lambda data=None, *args: min(to_float(arg) for arg in args) if args else NAN,
-    'max': lambda data=None, *args: max(to_float(arg) for arg in args) if args else NAN,
+    'min': lambda data=None, *args: min(to_number(arg) for arg in args) if args else NAN,
+    'max': lambda data=None, *args: max(to_number(arg) for arg in args) if args else NAN,
     'cat': lambda data=None, *args: ''.join(to_string(arg) for arg in args),
     'log': log,
     'var': var,
