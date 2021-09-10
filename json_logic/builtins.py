@@ -61,12 +61,15 @@ def op_equals(data=None, a=None, b=None, *_ignored) -> bool:
     raise TypeError
 
 def to_number(a: Any) -> Union[float, int]:
+    if isinstance(a, NUMERIC):
+        return a
+
     if a is None:
-        return 0.0
+        return 0
 
     if isinstance(a, list):
         if not a:
-            return 0.0
+            return 0
         elif len(a) > 1:
             return NAN
         else:
@@ -85,9 +88,6 @@ def to_number(a: Any) -> Union[float, int]:
     if isinstance(a, date):
         return (datetime.combine(a, time()) - EPOCH).total_seconds() * 1000.0
 
-    if isinstance(a, NUMERIC):
-        return a
-
     try:
         return float(a)
     except ValueError:
@@ -97,7 +97,10 @@ def to_string(value: Any) -> str:
     if isinstance(value, str):
         return value
 
-    if isinstance(value, NUMERIC):
+    if isinstance(value, float):
+        return '%.15g' % value
+
+    if isinstance(value, int):
         return str(value)
 
     if value is None:
@@ -117,9 +120,6 @@ def to_string(value: Any) -> str:
 
     if isinstance(value, (date, datetime)):
         return format_date_time(mktime(value.timetuple()))
-
-    if isinstance(value, float):
-        return '%.15g' % value
 
     return str(value)
 
@@ -373,7 +373,7 @@ def op_var(data=None, key=None, default=None) -> Any:
     if key is None or key == '':
         return data
 
-    if isinstance(key, (int, float)):
+    if isinstance(key, NUMERIC):
         if isinstance(data, (list, str)):
             try:
                 index = int(key)
