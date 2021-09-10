@@ -302,9 +302,8 @@ def op_substr(data=None, string=None, index=None, length=None, *_ignored) -> str
 
     return string[index:end_index]
 
-def substr_utf16(data=None, string=None, index=None, length=None, *_ignored) -> str:
-    string = array('H')
-    string.frombytes(to_string(string).encode('UTF-16BE'))
+def op_substr_utf16(data=None, string=None, index=None, length=None, *_ignored) -> str:
+    string = array('H', to_string(string).encode('UTF-16BE'))
 
     index = to_number(index)
 

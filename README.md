@@ -26,9 +26,9 @@ this:
 
 ```Python
 from json_logic import jsonLogic
-from json_logic.builtins import BUILTINS, substr_utf16
+from json_logic.builtins import BUILTINS, op_substr_utf16
 
-result = jsonLogic(logic, data, { **BUILTINS, 'substr': substr_utf16 })
+result = jsonLogic(logic, data, { **BUILTINS, 'substr': op_substr_utf16 })
 ```
 
 TODO
