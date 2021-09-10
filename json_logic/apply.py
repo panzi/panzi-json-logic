@@ -4,6 +4,9 @@ from .types import JsonValue, Operations
 from .builtins import BUILTINS, to_bool, not_
 
 def apply(logic: JsonValue, data: JsonValue=None, operations: Operations=BUILTINS) -> JsonValue:
+    if isinstance(logic, list):
+        return [apply(item, data, operations) for item in logic]
+
     if not isinstance(logic, dict) or len(logic) != 1:
         return logic
 

@@ -11,6 +11,7 @@ import sys
 import re
 
 from json_logic import jsonLogic, certLogic
+from json_logic.types import Operations
 from json_logic.builtins import BUILTINS as JSONLOGIC_BUILTINS
 from json_logic.cert_logic.builtins import BUILTINS as CERTLOGIC_BUILTINS
 
@@ -52,7 +53,161 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(jsonLogic({'var': ''}, None), None, "Var when data is null")
         self.assertEqual(jsonLogic({'var': ['a', 'fallback']}, None), 'fallback', "Fallback works when data is a non-object")
 
-    # TODO: more basic tests
+    def test_expanding_functionality(self):
+        ops = dict(JSONLOGIC_BUILTINS)
+
+        # Operator is not yet defined
+        self.assertRaisesRegex(
+            ReferenceError, "Unrecognized operation: 'add_to_a'",
+            jsonLogic, {'add_to_a': []}, operations=ops)
+
+        # Set up some outside data, and build a basic function operator
+        a = 0
+        def add_to_a(data, b=None):
+            nonlocal a
+            if b is None:
+                b = 1
+            a += b
+            return a
+
+        ops['add_to_a'] = add_to_a
+        # New operation executes, returns desired result
+        # No args
+        self.assertEqual(jsonLogic({'add_to_a': []}, operations=ops), 1)
+        # Unary syntactic sugar
+        self.assertEqual(jsonLogic({'add_to_a': 41}, operations=ops), 42)
+        # New operation had side effects.
+        self.assertEqual(a, 42)
+
+        fives: Operations = {
+            'add':      lambda data, i: i + 5,
+            'subtract': lambda data, i: i - 5,
+        }
+
+        ops['fives'] = fives
+        self.assertEqual(jsonLogic({'fives.add': 37}, operations=ops), 42)
+        self.assertEqual(jsonLogic({'fives.subtract': [47]}, operations=ops), 42)
+
+        # Calling a method with multiple var as arguments.
+        ops['times'] = lambda data, a, b: a * b
+        self.assertEqual(
+            jsonLogic(
+                {"times": [{"var": "a"}, {"var": "b"}]},
+                {'a': 6, 'b': 7},
+                ops
+            ),
+            42
+        )
+
+        # Remove operation:
+        del ops['times']
+
+        self.assertRaisesRegex(
+            ReferenceError, "Unrecognized operation: 'times'",
+            jsonLogic, {'times': [2, 2]}, operations=ops)
+
+        # Calling a method that takes an array, but the inside of the array has rules, too
+        ops['array_times'] = lambda data, a: a[0] * a[1]
+        self.assertEqual(
+            jsonLogic(
+                {"array_times": [[{"var": "a"}, {"var": "b"}]]},
+                {'a': 6, 'b': 7},
+                ops
+            ),
+            42
+        )
+
+    def test_short_circuit(self):
+        """
+        Control structures don't eval depth-first
+        """
+        ops = dict(JSONLOGIC_BUILTINS)
+        conditions = []
+        consequences = []
+
+        def push_if(data, v):
+            conditions.append(v)
+            return v
+
+        def push_then(data, v):
+            consequences.append(v)
+            return v
+
+        def push_else(data, v):
+            consequences.append(v)
+            return v
+
+        ops['push.if']   = push_if
+        ops['push.then'] = push_then
+        ops['push.else'] = push_else
+
+        jsonLogic({"if": [
+            {"push.if": [True]},
+            {"push.then": ["first"]},
+            {"push.if": [False]},
+            {"push.then": ["second"]},
+            {"push.else": ["third"]},
+        ]}, operations=ops)
+
+        self.assertListEqual(conditions, [True])
+        self.assertListEqual(consequences, ["first"])
+
+        conditions = []
+        consequences = []
+        jsonLogic({"if": [
+            {"push.if": [False]},
+            {"push.then": ["first"]},
+            {"push.if": [True]},
+            {"push.then": ["second"]},
+            {"push.else": ["third"]},
+        ]}, operations=ops)
+
+        self.assertListEqual(conditions, [False, True])
+        self.assertListEqual(consequences, ["second"])
+
+        conditions = []
+        consequences = []
+        jsonLogic({"if": [
+            {"push.if": [False]},
+            {"push.then": ["first"]},
+            {"push.if": [False]},
+            {"push.then": ["second"]},
+            {"push.else": ["third"]},
+        ]}, operations=ops)
+
+        self.assertListEqual(conditions, [False, False])
+        self.assertListEqual(consequences, ["third"])
+
+        i = []
+        def push(data, arg):
+            i.append(arg)
+            return arg
+        ops['push'] = push
+
+        jsonLogic({"and": [{"push": [False]}, {"push": [False]}]}, operations=ops)
+        self.assertListEqual(i, [False])
+        i = []
+        jsonLogic({"and": [{"push": [False]}, {"push": [True]}]}, operations=ops)
+        self.assertListEqual(i, [False])
+        i = []
+        jsonLogic({"and": [{"push": [True]}, {"push": [False]}]}, operations=ops)
+        self.assertListEqual(i, [True, False])
+        i = []
+        jsonLogic({"and": [{"push": [True]}, {"push": [True]}]}, operations=ops)
+        self.assertListEqual(i, [True, True])
+
+        i = []
+        jsonLogic({"or": [{"push": [False]}, {"push": [False]}]}, operations=ops)
+        self.assertListEqual(i, [False, False])
+        i = []
+        jsonLogic({"or": [{"push": [False]}, {"push": [True]}]}, operations=ops)
+        self.assertListEqual(i, [False, True])
+        i = []
+        jsonLogic({"or": [{"push": [True]}, {"push": [False]}]}, operations=ops)
+        self.assertListEqual(i, [True])
+        i = []
+        jsonLogic({"or": [{"push": [True]}, {"push": [True]}]}, operations=ops)
+        self.assertListEqual(i, [True])
 
 class JsonLogicTests(unittest.TestCase):
     pass
