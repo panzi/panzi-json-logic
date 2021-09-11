@@ -211,13 +211,11 @@ Retrieve current time as Python `datetime` object in UTC.
 ### `parseTime`
 
 Parse RFC 3339 date and date-time strings. No time zone is assumed to be UTC.
-If the argument is a number it is interpreted as milliseconds since the Unix
-epoch (1970-01-01 UTC).
 
 ```
 {
     "parseTime": [
-        <string-or-datetime-or-number>
+        <string-or-datetime>
     ]
 }
 ```
@@ -229,7 +227,7 @@ Milliseconds since given date-time.
 ```
 {
     "timeSince": [
-        <string-or-datetime-or-number>
+        <string-or-datetime>
     ]
 }
 ```
