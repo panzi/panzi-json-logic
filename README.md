@@ -21,6 +21,7 @@ don't implement CertLogic at all. This implementation tries to be as close to
 the [JavaScript implementation](https://github.com/jwadhams/json-logic-js) of
 JsonLogic as feasible.
 
+* [Installation](#installation)
 * [Examples](#examples)
   * [Simple](#simple)
   * [Compound](#compound)
@@ -31,6 +32,15 @@ JsonLogic as feasible.
 * [Extras](#extras)
 * [Remarks](#remarks)
 * [Credits](#credits)
+
+Installation
+------------
+
+Install this package via pypi:
+
+```bash
+pip install panzi-json-logic
+```
 
 Examples
 --------
