@@ -338,8 +338,3 @@ some of the tests are ported from [json-logic-js](https://github.com/jwadhams/js
 and the [JsonLogic test suite](https://jsonlogic.com/tests.json) and the
 [CertLogic test suite](https://github.com/ehn-dcc-development/dgc-business-rules/tree/main/certlogic/specification/testSuite)
 are included in the tests of this library.
-
-TODO
-----
-
-* pypi package
