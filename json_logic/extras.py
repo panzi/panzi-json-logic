@@ -7,7 +7,7 @@ from .cert_logic.builtins import parse_time, to_number
 
 def op_time_since(data=None, timestamp=None, *_ignored) -> float:
     dt = parse_time(timestamp)
-    return (dt - datetime.utcnow().replace(tzinfo=timezone.utc)).total_seconds() * 1000
+    return (datetime.utcnow().replace(tzinfo=timezone.utc) - dt).total_seconds() * 1000
 
 def combinations(*lists: List[JsonValue]) -> List[List[JsonValue]]:
     combinations: List[List[JsonValue]] = []
