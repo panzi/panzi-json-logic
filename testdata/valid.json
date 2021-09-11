@@ -1,0 +1,145 @@
+[
+    {
+        "name": "PCR Test",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "CovidTest",
+                    "testedAt": "2021-08-16T13:10:00.000Z",
+                    "testType": "PCR",
+                    "selfTest": false
+                }
+            ]
+        }
+    },
+    {
+        "name": "AntiGen Test",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "CovidTest",
+                    "testedAt": "2021-08-16T13:10:00.000Z",
+                    "testType": "AntiGen",
+                    "selfTest": false
+                }
+            ]
+        }
+    },
+    {
+        "name": "Self-Test",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "CovidTest",
+                    "testedAt": "2021-08-16T13:10:00.000Z",
+                    "selfTest": true
+                }
+            ]
+        }
+    },
+    {
+        "name": "Vaccination with Comirnaty (Biontech/Pfizer)",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2021-08-16T13:10:00.000Z",
+                    "vaccine": "EU/1/20/1528",
+                    "doseNumber": 2,
+                    "totalDoses": 2
+                }
+            ]
+        }
+    },
+    {
+        "name": "Vaccination with COVID-19 Vaccine Moderna",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2021-08-16T13:10:00.000Z",
+                    "vaccine": "EU/1/20/1507",
+                    "doseNumber": 2,
+                    "totalDoses": 2
+                }
+            ]
+        }
+    },
+    {
+        "name": "Vaccination with Vaxzevria (AstraZeneca)",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2021-08-16T13:10:00.000Z",
+                    "vaccine": "EU/1/21/1529",
+                    "doseNumber": 2,
+                    "totalDoses": 2
+                }
+            ]
+        }
+    },
+    {
+        "name": "Vaccination with COVID-19 Vaccine Janssen (Johnson & Johnson)",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2021-07-26T13:10:00.000Z",
+                    "vaccine": "EU/1/20/1525",
+                    "doseNumber": 1,
+                    "totalDoses": 1
+                }
+            ]
+        }
+    },
+    {
+        "name": "Recovery",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Recovery",
+                    "infectedAt":  "2021-01-29T13:10:00.000Z",
+                    "recoveredAt": "2021-02-18T13:10:00.000Z"
+                }
+            ]
+        }
+    },
+    {
+        "name": "Recovery + Vaccination",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Recovery",
+                    "infectedAt": "2021-01-29T13:10:00.000Z",
+                    "recoveredAt": "2021-02-17T13:10:00.000Z"
+                },
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2021-02-19T13:10:00.000Z",
+                    "vaccine": "EU/1/20/1528",
+                    "doseNumber": 1,
+                    "totalDoses": 2
+                }
+            ]
+        }
+    }
+]

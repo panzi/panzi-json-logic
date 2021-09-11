@@ -11,9 +11,9 @@ import sys
 import re
 
 from json_logic import jsonLogic, certLogic
-from json_logic.types import Operations
+from json_logic.types import JsonValue, Operations
 from json_logic.builtins import BUILTINS as JSONLOGIC_BUILTINS, op_substr_utf16
-from json_logic.extras import EXTRAS
+from json_logic.extras import EXTRAS, parse_time
 from json_logic.cert_logic.builtins import BUILTINS as CERTLOGIC_BUILTINS
 
 NON_IDENT = re.compile('[^_a-zA-Z0-9]+')
@@ -28,6 +28,18 @@ for filename in sorted(listdir(CERTLOGIC_DIR)):
     if filename.lower().endswith('.json'):
         with open(joinpath(CERTLOGIC_DIR, filename)) as fp:
             CERTLOGIC_TESTS.append(json.load(fp))
+
+VALID: List[dict]
+with open(joinpath(TESTDATA_DIR, 'valid.json')) as fp:
+    VALID = json.load(fp)
+
+INVALID: List[dict]
+with open(joinpath(TESTDATA_DIR, 'invalid.json')) as fp:
+    INVALID = json.load(fp)
+
+RULE: JsonValue
+with open(joinpath(TESTDATA_DIR, 'rule.json')) as fp:
+    RULE = json.load(fp)
 
 class BasicTests(unittest.TestCase):
     def test_bad_operator(self):
@@ -298,6 +310,43 @@ for group in CERTLOGIC_TESTS:
         assertions = test['assertions']
         func = make_cert_test(name, logic, assertions)
         setattr(CertLogicTests, func.__name__, func)
+
+class ValidHealthDataTests(unittest.TestCase):
+    pass
+
+class InvalidHealthDataTests(unittest.TestCase):
+    pass
+
+NOW = parse_time("2021-08-17T15:10:00+02:00")
+TEST_EXTRAS: Operations = dict(EXTRAS)
+
+def mock_time_since(data=None, timestamp=None, *_ignored) -> float:
+    dt = parse_time(timestamp)
+    return (NOW - dt).total_seconds() * 1000
+
+TEST_EXTRAS['timeSince'] = mock_time_since
+TEST_EXTRAS['now']       = lambda *_ignored: NOW
+
+def make_rule_test(name: str, data: JsonValue, expected: bool):
+    def test_func(self: unittest.TestCase):
+        actual = jsonLogic(RULE, data, TEST_EXTRAS)
+        self.assertEqual(actual, expected,
+            f"Wrong result\n"
+            f"     data: {json.dumps(data)}\n"
+            f" expected: {json.dumps(expected)}\n"
+            f"   actual: {json.dumps(actual)}\n"
+        )
+    test_func.__name__ = 'test_' + NON_IDENT.sub('_', name).strip('_')
+    test_func.__doc__  = name
+    return test_func
+
+for valid in VALID:
+    func = make_rule_test(valid['name'], valid['code'], True)
+    setattr(ValidHealthDataTests, func.__name__, func)
+
+for invalid in INVALID:
+    func = make_rule_test(invalid['name'], invalid['code'], False)
+    setattr(InvalidHealthDataTests, func.__name__, func)
 
 if __name__ == '__main__':
     unittest.main()

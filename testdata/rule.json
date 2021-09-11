@@ -1,0 +1,123 @@
+{"or": [
+    {"some": [
+        {"var": "events"},
+        {"or": [
+            {"and": [
+                {"===": [{"var": "type"}, "CovidTest"]},
+                {"===": [{"var": "testType"}, "PCR"]},
+                {"===": [{"var": "selfTest"}, false]},
+                {"<=": [
+                    0,
+                    {"timeSince": [{"var": "testedAt"}]},
+                    {"hours": 72}
+                ]}
+            ]},
+            {"and": [
+                {"===": [{"var": "type"}, "CovidTest"]},
+                {"===": [{"var": "testType"}, "AntiGen"]},
+                {"===": [{"var": "selfTest"}, false]},
+                {"<=": [
+                    0,
+                    {"timeSince": [{"var": "testedAt"}]},
+                    {"hours": 48}
+                ]}
+            ]},
+            {"and": [
+                {"===": [{"var": "type"}, "CovidTest"]},
+                {"===": [{"var": "selfTest"}, true]},
+                {"<=": [
+                    0,
+                    {"timeSince": [{"var": "testedAt"}]},
+                    {"hours": 24}
+                ]}
+            ]},
+            {"and": [
+                {"===": [{"var": "type"}, "Vaccination"]},
+                {"in":  [{"var": "vaccine"}, [
+                    "EU/1/20/1528",
+                    "EU/1/20/1507",
+                    "EU/1/21/1529"
+                ]]},
+                {"<=": [
+                    0,
+                    {"timeSince": [{"var": "vaccinatedAt"}]},
+                    {"days": 270}
+                ]},
+                {"===": [{"var": "doseNumber"}, 2]}
+            ]},
+            {"and": [
+                {"===": [{"var": "type"}, "Vaccination"]},
+                {"in":  [{"var": "vaccine"}, [
+                    "EU/1/20/1525"
+                ]]},
+                {"<=": [
+                    {"days": 21},
+                    {"timeSince": {"var": "vaccinatedAt"}},
+                    {"days": 270}
+                ]},
+                {"===": [{"var": "doseNumber"}, 1]}
+            ]},
+            {"and": [
+                {"===": [{"var": "type"}, "Recovery"]},
+                {"<": [
+                    {"parseTime": {"var": "infectedAt"}},
+                    {"parseTime": {"var": "recoveredAt"}}
+                ]},
+                {"<=": [
+                    0,
+                    {"timeSince": {"var": "recoveredAt"}},
+                    {"days": 180}
+                ]}
+            ]}
+        ]}
+    ]},
+    {"some": [
+        {"combinations": [
+            {"map": [
+                {"filter": [
+                    {"var": "events"},
+                    {"and": [
+                        {"===": [{"var": "type"}, "Vaccination"]},
+                        {"in":  [{"var": "vaccine"}, [
+                            "EU/1/20/1528",
+                            "EU/1/20/1507",
+                            "EU/1/21/1529",
+                            "EU/1/20/1525"
+                        ]]},
+                        {"<=": [
+                            0,
+                            {"timeSince": [{"var": "vaccinatedAt"}]},
+                            {"days": 270}
+                        ]},
+                        {">=": [{"var": "doseNumber"}, 1]}
+                    ]}
+                ]},
+                {"parseTime": {"var": "vaccinatedAt"}}
+            ]},
+            {"map": [
+                {"filter": [
+                    {"var": "events"},
+                    {"and": [
+                        {"===": [{"var": "type"}, "Recovery"]},
+                        {"<=": [
+                            0,
+                            {"timeSince": [{"var": "recoveredAt"}]}
+                        ]},
+                        {"<": [
+                            {"parseTime": {"var": "infectedAt"}},
+                            {"parseTime": {"var": "recoveredAt"}}
+                        ]}
+                    ]}
+                ]},
+                {"parseTime": {"var": "infectedAt"}}
+            ]}
+        ]},
+        {">=": [
+            {"-": [
+                {"var": [0]},
+                {"var": [1]}
+            ]},
+            {"days": 21}
+        ]}
+    ]}
+]}

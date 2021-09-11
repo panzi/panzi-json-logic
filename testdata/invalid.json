@@ -1,0 +1,309 @@
+[
+    {
+        "name": "Test in future",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "CovidTest",
+                    "testedAt": "2021-08-17T16:10:00.000Z",
+                    "testType": "PCR",
+                    "selfTest": false
+                }
+            ]
+        }
+    },
+    {
+        "name": "1 second too old PCR test",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "CovidTest",
+                    "testedAt": "2021-08-14T13:09:59.000Z",
+                    "testType": "PCR",
+                    "selfTest": false
+                }
+            ]
+        }
+    },
+    {
+        "name": "Way too old AntiGen test",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "CovidTest",
+                    "testedAt": "2020-08-17T13:10:00.000Z",
+                    "testType": "AntiGen",
+                    "selfTest": false
+                }
+            ]
+        }
+    },
+    {
+        "name": "1 second too old AntiGen test",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "CovidTest",
+                    "testedAt": "2021-08-15T13:09:59.000Z",
+                    "testType": "AntiGen",
+                    "selfTest": false
+                }
+            ]
+        }
+    },
+    {
+        "name": "Way too old Self-Test",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "CovidTest",
+                    "testedAt": "2020-08-17T13:10:00.000Z",
+                    "selfTest": true
+                }
+            ]
+        }
+    },
+    {
+        "name": "1 second too old Self-Test",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "CovidTest",
+                    "testedAt": "2021-08-16T13:09:59.000Z",
+                    "selfTest": true
+                }
+            ]
+        }
+    },
+    {
+        "name": "Vaccination with Comirnaty claiming 1 of 1",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2021-08-16T13:10:00.000Z",
+                    "vaccine": "EU/1/20/1528",
+                    "doseNumber": 1,
+                    "totalDoses": 1
+                }
+            ]
+        }
+    },
+    {
+        "name": "Vaccination with COVID-19 Vaccine Moderna claiming 1 of 1",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2021-08-16T13:10:00.000Z",
+                    "vaccine": "EU/1/20/1507",
+                    "doseNumber": 1,
+                    "totalDoses": 1
+                }
+            ]
+        }
+    },
+    {
+        "name": "Vaccination with Vaxzevria (AstraZeneca) claiming 1 of 1",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2021-08-16T13:10:00.000Z",
+                    "vaccine": "EU/1/21/1529",
+                    "doseNumber": 1,
+                    "totalDoses": 1
+                }
+            ]
+        }
+    },
+    {
+        "name": "Way too old vaccination with Comirnaty",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2020-08-17T13:10:00.000Z",
+                    "vaccine": "EU/1/20/1528",
+                    "doseNumber": 2,
+                    "totalDoses": 2
+                }
+            ]
+        }
+    },
+    {
+        "name": "1 second too old vaccination with Comirnaty",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2020-11-20T13:09:59.000Z",
+                    "vaccine": "EU/1/20/1528",
+                    "doseNumber": 2,
+                    "totalDoses": 2
+                }
+            ]
+        }
+    },
+    {
+        "name": "1 second too old vaccination with COVID-19 Vaccine Janssen",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2020-11-20T13:09:59.000Z",
+                    "vaccine": "EU/1/20/1525",
+                    "doseNumber": 1,
+                    "totalDoses": 1
+                }
+            ]
+        }
+    },
+    {
+        "name": "Vaccination in the future",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2021-08-18T13:10:00.000Z",
+                    "vaccine": "EU/1/20/1525",
+                    "doseNumber": 1,
+                    "totalDoses": 1
+                }
+            ]
+        }
+    },
+    {
+        "name": "Too recent vaccination with COVID-19 Vaccine Janssen",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2021-07-27T13:10:01.000Z",
+                    "vaccine": "EU/1/20/1525",
+                    "doseNumber": 1,
+                    "totalDoses": 1
+                }
+            ]
+        }
+    },
+    {
+        "name": "Way too old recovery",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Recovery",
+                    "infectedAt": "2020-07-13T13:10:00.000Z",
+                    "recoveredAt": "2020-08-02T13:10:00.000Z"
+                }
+            ]
+        }
+    },
+    {
+        "name": "1 second too old Recovery",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Recovery",
+                    "infectedAt": "2021-01-29T13:10:00.000Z",
+                    "recoveredAt": "2021-02-18T13:09:59.000Z"
+                }
+            ]
+        }
+    },
+    {
+        "name": "Recovery in future",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Recovery",
+                    "infectedAt": "2021-08-15T13:10:00.000Z",
+                    "recoveredAt": "2021-08-20T13:10:00.000Z"
+                }
+            ]
+        }
+    },
+    {
+        "name": "Infection in future",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Recovery",
+                    "infectedAt": "2021-08-19T13:10:00.000Z",
+                    "recoveredAt": "2021-08-20T13:10:00.000Z"
+                }
+            ]
+        }
+    },
+    {
+        "name": "Infection after recovery",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Recovery",
+                    "infectedAt": "2021-08-15T13:10:00.000Z",
+                    "recoveredAt": "2021-08-14T13:10:00.000Z"
+                }
+            ]
+        }
+    },
+    {
+        "name": "1st Vaccination with too recent recovery",
+        "code": {
+            "photoId": "e2c18b90-2a32-44a7-b7e2-913e69b4b93f",
+            "photoKey": "fb6bZcTZoJc6f1fVTxI45xpFEQqra5q6LbCCUrf2iTg=",
+            "events": [
+                {
+                    "type": "Recovery",
+                    "infectedAt": "2021-01-29T13:10:00.000Z",
+                    "recoveredAt": "2021-02-08T13:10:00.000Z"
+                },
+                {
+                    "type": "Vaccination",
+                    "vaccinatedAt": "2021-02-18T13:09:59.000Z",
+                    "vaccine": "EU/1/20/1507",
+                    "doseNumber": 1,
+                    "totalDoses": 2
+                }
+            ]
+        }
+    }
+]
