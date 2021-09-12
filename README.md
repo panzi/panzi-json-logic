@@ -21,6 +21,9 @@ don't implement CertLogic at all. This implementation tries to be as close to
 the [JavaScript implementation](https://github.com/jwadhams/json-logic-js) of
 JsonLogic as feasible.
 
+I've also written a JsonLogic+CertLogic implementation written in C:
+[jsonlogic-c](https://github.com/panzi/jsonlogic-c)
+
 * [Installation](#installation)
 * [Examples](#examples)
   * [Simple](#simple)
