@@ -346,7 +346,7 @@ Convert days to milliseconds. Useful in combination with `timeSince`.
 
 ```
 {
-    "hours": [
+    "days": [
         <number>
     ]
 }
