@@ -298,7 +298,7 @@ string.
 Example:
 
 ```Python
-certLogic({'formatTime':{'now':''}}, None, EXTRAS)
+jsonLogic({'formatTime':{'now':''}}, None, EXTRAS)
 # '2021-09-12T01:03:56.534319+00:00'
 ```
 
