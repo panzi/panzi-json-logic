@@ -236,7 +236,7 @@ jsonLogic({"now":[]}, None, EXTRAS)
 ### `parseTime`
 
 Parse RFC 3339 date and date-time strings. Date-time strings without an explicit
-time zone offset are assumed to be in UTC. Note that a RFC 3339 is a subset of
+time zone offset are assumed to be in UTC. Note that RFC 3339 is a subset of
 ISO 8601, but it is actually what most people think of when they think of ISO
 date-time strings.
 
