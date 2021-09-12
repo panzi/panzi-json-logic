@@ -379,9 +379,8 @@ from json_logic import jsonLogic
 from json_logic.extras import EXTRAS
 
 jsonLogic({"combinations": [
-    [1, 2, 3],
-    ["a", "b", "c"],
-    ["x", "y", "z"],
+    [1, 2],
+    ["a", "b"],
 ]}, None, EXTRAS)
 # [[1, 'a'], [1, 'b'], [2, 'a'], [2, 'b']]
 ```
