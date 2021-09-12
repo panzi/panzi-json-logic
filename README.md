@@ -202,11 +202,14 @@ The CertLogic builtins can be found under `json_logic.cert_logic.builtins.BUILTI
 Extras
 ------
 
-This library also includes some extra operators that are not part of JsonLogic
-under `json_logic.extras.EXTRAS`. This dictionary already includes
-`json_logic.builtins.BUILTINS`. The same extras but combined with
+This library also includes some extra operators that are not part of JsonLogic.
+You can find them under `json_logic.extras.EXTRAS`. This dictionary already
+includes `json_logic.builtins.BUILTINS`. The same extras but combined with
 `json_logic.cert_logic.builtins.BUILTINS` can be found under
-`json_logic.cert_logic.extras.EXTRAS`.
+`json_logic.cert_logic.extras.EXTRAS`. The CertLogic extras also include all the
+operations from JsonLogic that are otherwise missing from CertLogic, but with
+CertLogic semantics for `!` and `!!` (i.e. empty objects are falsy in CertLogic,
+but truthy in JsonLogic).
 
 ### `now`
 
@@ -218,9 +221,19 @@ Retrieve current time as Python `datetime` object in UTC.
 }
 ```
 
+Example:
+
+```Python
+from json_logic import jsonLogic
+from json_logic.extras import EXTRAS
+jsonLogic({"now":[]}, None, EXTRAS)
+# datetime.datetime(2021, 9, 12, 0, 31, 25, 419443, tzinfo=datetime.timezone.utc)
+```
+
 ### `parseTime`
 
-Parse RFC 3339 date and date-time strings. No time zone is assumed to be UTC.
+Parse RFC 3339 date and date-time strings. Date-time strings without an explicit
+time zone offset are assumed to be in UTC.
 
 ```
 {
@@ -229,6 +242,40 @@ Parse RFC 3339 date and date-time strings. No time zone is assumed to be UTC.
     ]
 }
 ```
+
+Example:
+
+```Python
+jsonLogic({"parseTime":"2022-01-02"}, None, EXTRAS)
+# datetime.datetime(2022, 1, 2, 0, 0, tzinfo=datetime.timezone.utc)
+jsonLogic({"parseTime":"2022-01-02T15:00:00+02:00"}, None, EXTRAS)
+# datetime.datetime(2022, 1, 2, 15, 0, tzinfo=datetime.timezone(datetime.timedelta(seconds=7200)))
+```
+
+**NOTE:**
+
+You need to use `parseTime` before comparing actual `datetime` objects with
+date-times provided as a string or you'll get wrong results. Assume the current
+time is somewhen in 2021:
+
+```Python
+jsonLogic({"<": [{"now":[]},"2022-01-02"]}, None, EXTRAS)
+# False
+jsonLogic({"<": [{"now":[]},{"parseTime":"2022-01-02"}]}, None, EXTRAS)
+# True
+```
+
+However CertLogic has operators that are doing that for you:
+
+```Python
+from json_logic import certLogic
+from json_logic.cert_logic.extras import EXTRAS
+certLogic({"before":[{"now":[]},"2022-01-02"]}, None, EXTRAS)
+# True
+```
+
+Note that `json_logic.cert_logic.extras.EXTRAS` (to get `now`) is used with
+`certLogic`.
 
 ### `timeSince`
 
@@ -240,6 +287,13 @@ Milliseconds since given date-time.
         <string-or-datetime>
     ]
 }
+```
+
+Exmaple:
+
+```Python
+jsonLogic({"timeSince":"2021-01-02T15:00:00+02:00"}, None, EXTRAS)
+# 21814538195.281
 ```
 
 ### `hours`
@@ -254,6 +308,13 @@ Convert hours to milliseconds. Useful in combination with `timeSince`.
 }
 ```
 
+Example:
+
+```Python
+jsonLogic({"hours": 2}, None, EXTRAS)
+# 7200000
+```
+
 ### `days`
 
 Convert days to milliseconds. Useful in combination with `timeSince`.
@@ -264,6 +325,13 @@ Convert days to milliseconds. Useful in combination with `timeSince`.
         <number>
     ]
 }
+```
+
+Example:
+
+```Python
+jsonLogic({"days": 2}, None, EXTRAS)
+# 172800000
 ```
 
 ### `combinations`
