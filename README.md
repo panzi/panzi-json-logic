@@ -292,7 +292,7 @@ string.
 }
 ```
 
-Examples:
+Example:
 
 ```Python
 certLogic({'formatTime':{'now':''}}, None, EXTRAS)
