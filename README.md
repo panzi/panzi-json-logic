@@ -233,7 +233,9 @@ jsonLogic({"now":[]}, None, EXTRAS)
 ### `parseTime`
 
 Parse RFC 3339 date and date-time strings. Date-time strings without an explicit
-time zone offset are assumed to be in UTC.
+time zone offset are assumed to be in UTC. Note that a RFC 3339 is a subset of
+ISO 8601, but it is actually what most people think of when they think of ISO
+date-time strings.
 
 ```
 {
@@ -276,6 +278,26 @@ certLogic({"before":[{"now":[]},"2022-01-02"]}, None, EXTRAS)
 
 Note that `json_logic.cert_logic.extras.EXTRAS` (to get `now`) is used with
 `certLogic`.
+
+### `formatTime`
+
+Format `date`/`datetime` object (or date-time encoded as a string) as a RFC 3339
+string.
+
+```
+{
+    "formatTime": [
+        <string-or-datetime>
+    ]
+}
+```
+
+Examples:
+
+```Python
+certLogic({'formatTime':{'now':''}}, None, EXTRAS)
+# '2021-09-12T01:03:56.534319+00:00'
+```
 
 ### `timeSince`
 
