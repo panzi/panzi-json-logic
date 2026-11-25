@@ -2,8 +2,9 @@
 
 from typing import Optional, List, Any
 from os import listdir
-from os.path import dirname, join as joinpath
+from os.path import dirname, join as joinpath, splitext
 from io import StringIO
+from pathlib import Path
 
 import unittest
 import json
@@ -12,7 +13,7 @@ import re
 
 from json_logic import jsonLogic, certLogic
 from json_logic.types import JsonValue, Operations
-from json_logic.builtins import BUILTINS as JSONLOGIC_BUILTINS, op_substr_utf16
+from json_logic.builtins import BUILTINS as JSONLOGIC_BUILTINS, op_substr_utf16, to_number
 from json_logic.extras import EXTRAS, parse_time
 from json_logic.cert_logic.builtins import BUILTINS as CERTLOGIC_BUILTINS
 
@@ -76,8 +77,9 @@ class BasicTests(unittest.TestCase):
 
         # Set up some outside data, and build a basic function operator
         a = 0
-        def add_to_a(data, b=None):
+        def add_to_a(args, data):
             nonlocal a
+            b = args[0] if args else None
             if b is None:
                 b = 1
             a += b
@@ -93,8 +95,8 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(a, 42)
 
         fives: Operations = {
-            'add':      lambda data, i: i + 5,
-            'subtract': lambda data, i: i - 5,
+            'add':      lambda args, data: to_number(args[0]) + 5,
+            'subtract': lambda args, data: to_number(args[0]) - 5,
         }
 
         ops['fives'] = fives
@@ -102,7 +104,7 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(jsonLogic({'fives.subtract': [47]}, operations=ops), 42)
 
         # Calling a method with multiple var as arguments.
-        ops['times'] = lambda data, a, b: a * b
+        ops['times'] = lambda args, data: to_number(args[0]) * to_number(args[1])
         self.assertEqual(
             jsonLogic(
                 {"times": [{"var": "a"}, {"var": "b"}]},
@@ -120,7 +122,8 @@ class BasicTests(unittest.TestCase):
             jsonLogic, {'times': [2, 2]}, operations=ops)
 
         # Calling a method that takes an array, but the inside of the array has rules, too
-        ops['array_times'] = lambda data, a: a[0] * a[1]
+        ops['array_times'] = lambda args, data: \
+            args[0][0] * args[0][1] # type: ignore
         self.assertEqual(
             jsonLogic(
                 {"array_times": [[{"var": "a"}, {"var": "b"}]]},
@@ -138,15 +141,18 @@ class BasicTests(unittest.TestCase):
         conditions = []
         consequences = []
 
-        def push_if(data, v):
+        def push_if(args, data):
+            v, = args
             conditions.append(v)
             return v
 
-        def push_then(data, v):
+        def push_then(args, data):
+            v, = args
             consequences.append(v)
             return v
 
-        def push_else(data, v):
+        def push_else(args, data):
+            v, = args
             consequences.append(v)
             return v
 
@@ -192,7 +198,8 @@ class BasicTests(unittest.TestCase):
         self.assertListEqual(consequences, ["third"])
 
         i = []
-        def push(data, arg):
+        def push(args, data):
+            arg, = args
             i.append(arg)
             return arg
         ops['push'] = push
@@ -320,12 +327,12 @@ class InvalidHealthDataTests(unittest.TestCase):
 NOW = parse_time("2021-08-17T15:10:00+02:00")
 TEST_EXTRAS: Operations = dict(EXTRAS)
 
-def mock_time_since(data=None, timestamp=None, *_ignored) -> float:
-    dt = parse_time(timestamp)
+def mock_time_since(args: list[JsonValue], data: JsonValue) -> float:
+    dt = parse_time(args[0])
     return (NOW - dt).total_seconds() * 1000
 
 TEST_EXTRAS['timeSince'] = mock_time_since
-TEST_EXTRAS['now']       = lambda *_ignored: NOW
+TEST_EXTRAS['now']       = lambda args, data: NOW
 
 def make_rule_test(name: str, data: JsonValue, expected: bool):
     def test_func(self: unittest.TestCase):
@@ -347,6 +354,76 @@ for valid in VALID:
 for invalid in INVALID:
     func = make_rule_test(invalid['name'], invalid['code'], False)
     setattr(InvalidHealthDataTests, func.__name__, func)
+
+SUITES_DIR = joinpath(TESTDATA_DIR, 'suites')
+
+def load_test_suit() -> dict[str, type]:
+    test_classes: dict[str, type] = {}
+
+    def make_test_func(test_index: int, test_case: dict):
+        descr: str|None = test_case.get('description')
+        name = 'test_' + NON_IDENT.sub('_', descr).strip('_') if descr is not None else f'test_{test_index}'
+        rule = test_case.get('rule')
+        data = test_case.get('data')
+        expected = test_case.get('result')
+
+        def test_func(self: unittest.TestCase):
+            actual = jsonLogic(rule, data)
+            self.assertEqual(actual, expected,
+                f"Wrong result\n"
+                f"     rule: {json.dumps(rule)}\n"
+                f"     data: {json.dumps(data)}\n"
+                f" expected: {json.dumps(expected)}\n"
+                f"   actual: {json.dumps(actual)}\n"
+            )
+
+        test_func.__name__ = name
+        test_func.__doc__  = descr
+        return test_func
+
+    with open(joinpath(SUITES_DIR, "index.json")) as fp:
+        test_filenames: list[str] = json.load(fp)
+
+    for filename in test_filenames:
+        rel_path = Path(filename)
+        abs_path = joinpath(SUITES_DIR, filename)
+
+        leaf, ext = splitext(rel_path.name)
+
+        with open(abs_path, 'rt') as fp:
+            test_cases: list[dict|str] = json.load(fp)
+
+        mod_path = ['suites', *rel_path.parts[:-1]]
+        module_name = '.'.join(mod_path)
+        module_name = '__main__'
+
+        class_name = leaf.title().replace('-', '').replace('.', '') + 'Tests'
+
+        class_dict = {}
+
+        for test_index, test_case in enumerate(test_cases):
+            if not isinstance(test_case, dict):
+                continue
+
+            test_func = make_test_func(test_index, test_case)
+            class_dict[test_func.__name__] = test_func
+
+        JsonTests = type(class_name, (unittest.TestCase, ), class_dict)
+        JsonTests.__module__ = module_name
+
+        test_classes[JsonTests.__name__] = JsonTests
+
+        #from pprint import pprint
+        #print()
+        #print('#', module_name, class_name)
+        #pprint(class_dict)
+
+    return test_classes
+
+this_module = sys.modules[__name__]
+for name, cls in load_test_suit().items():
+    setattr(this_module, name, cls)
+del this_module
 
 if __name__ == '__main__':
     unittest.main()
