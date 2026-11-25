@@ -61,7 +61,7 @@ def apply(logic: JsonValue, data: JsonValue=None, operations: Operations=BUILTIN
     args = [apply(arg, data, operations) for arg in args]
 
     if op in operations:
-        return operations[op](data, *args) # type: ignore
+        return operations[op](args, data) # type: ignore
     elif '.' in op:
         props = op.split('.')
         ops = operations
@@ -69,6 +69,6 @@ def apply(logic: JsonValue, data: JsonValue=None, operations: Operations=BUILTIN
             if isinstance(ops, dict) and prop not in ops:
                 raise ReferenceError(f"Unrecognized operation {'.'.join(props[:index + 1])}")
             ops = ops[prop] # type: ignore
-        return ops(data, *args) # type: ignore
+        return ops(args, data) # type: ignore
 
     raise ReferenceError(f"Unrecognized operation {op}")

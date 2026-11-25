@@ -7,5 +7,5 @@ __all__ = 'JsonValue',
 
 type JsonValue = Union[int, float, bool, str, date, datetime, None, list['JsonValue'], dict[str, 'JsonValue']] # type: ignore
 
-type Operation = Callable[..., JsonValue]
+type Operation = Callable[[list[JsonValue], JsonValue], JsonValue]
 type Operations = dict[str, Union[Operation, 'Operations']]

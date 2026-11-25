@@ -6,17 +6,17 @@ from time import mktime
 from wsgiref.handlers import format_date_time
 from math import isnan
 from array import array
+from math import nan
 
 import json
 import sys
 
 from .types import JsonValue, Operations
 
-NAN = float('nan')
 NUMERIC = (int, float)
 EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
-def op_equals(data=None, *args) -> bool|None:
+def op_equals(args: list[JsonValue], data: Any) -> bool|None:
     if len(args) < 2:
         return None
 
@@ -66,35 +66,49 @@ def op_equals(data=None, *args) -> bool|None:
 
     raise TypeError
 
-def op_not_equals(data=None, *args) -> bool|None:
-    res = op_equals(data, *args)
+def op_not_equals(args: list[JsonValue], data: Any) -> bool|None:
+    res = op_equals(args, data)
 
     if res is None:
         return None
 
     return not res
 
-def op_strict_equals(data=None, *args) -> bool|None:
+def op_strict_equals(args: list[JsonValue], data: Any) -> bool|None:
     if len(args) < 2:
         return None
 
     a = args[0]
     b = args[1]
 
-    if type(a) is not type(b):
-        return False
+    a_type = type(a)
+    b_type = type(b)
+
+    if a_type is not b_type:
+        if a_type in NUMERIC:
+            if b_type not in NUMERIC:
+                return False
+        else:
+            return False
 
     return a == b
 
-def op_strict_not_equals(data=None, *args) -> bool|None:
+def op_strict_not_equals(args: list[JsonValue], data: Any) -> bool|None:
     if len(args) < 2:
         return None
 
     a = args[0]
     b = args[1]
 
-    if type(a) is not type(b):
-        return True
+    a_type = type(a)
+    b_type = type(b)
+
+    if a_type is not b_type:
+        if a_type in NUMERIC:
+            if b_type not in NUMERIC:
+                return True
+        else:
+            return True
 
     return a != b
 
@@ -109,16 +123,16 @@ def to_number(a: Any) -> Union[float, int]:
         if not a:
             return 0
         elif len(a) > 1:
-            return NAN
+            return nan
         else:
             return to_number(a[0])
 
     if isinstance(a, dict):
-        return NAN
+        return nan
 
     if isinstance(a, str) and a.strip().lower() in ('inf', '-inf', '+inf'):
         # Python's float() would allow these, but JavaScript won't recognize these
-        return NAN
+        return nan
 
     if isinstance(a, datetime):
         return (a - EPOCH).total_seconds() * 1000.0
@@ -129,7 +143,7 @@ def to_number(a: Any) -> Union[float, int]:
     try:
         return float(a)
     except ValueError:
-        return NAN
+        return nan
 
 def to_string(value: Any) -> str:
     if isinstance(value, str):
@@ -197,13 +211,13 @@ def not_(value: Any=None) -> bool:
     # dict, date, datetime
     return False
 
-def op_add(data=None, *args: Any) -> Union[float, int]:
+def op_add(args: list[JsonValue], data: Any) -> Union[float, int]:
     value: Union[float, int] = 0
     for arg in args:
         value += to_number(arg)
     return value
 
-def op_mul(data=None, *args: Any) -> Union[float, int]:
+def op_mul(args: list[JsonValue], data: Any) -> Union[float, int]:
     value: Union[float, int] = 1
     for arg in args:
         value *= to_number(arg)
@@ -216,10 +230,11 @@ def json_default(arg: Any) -> JsonValue:
     argtype = type(arg)
     raise TypeError(f'unhandled type: {argtype.__module__}.{argtype.__name__}')
 
-def op_log(data=None, arg: Any=None, *_ignored) -> Any:
-    json.dump(arg, sys.stdout, default=json_default)
+def op_log(args: list[JsonValue], data: Any) -> Any:
+    value = args[0] if args else None
+    json.dump(value, sys.stdout, default=json_default)
     sys.stdout.write('\n')
-    return arg
+    return value
 
 def less_than(a, b) -> bool:
     if isinstance(a, NUMERIC):
@@ -236,11 +251,18 @@ def less_than(a, b) -> bool:
 
     return to_number(a) < to_number(b)
 
-def op_less_than(data=None, a=None, b=None, c=None, *_ignored) -> bool:
-    if c is None:
-        return less_than(a, b)
-    
-    return less_than(a, b) and less_than(b, c)
+def op_less_than(args: list[JsonValue], data: Any) -> bool|None:
+    if len(args) < 2:
+        return None
+
+    it = iter(args)
+    a = next(it)
+    for b in it:
+        if not less_than(a, b):
+            return False
+        a = b
+
+    return True
 
 def greater_than(a, b) -> bool:
     if isinstance(a, NUMERIC):
@@ -257,11 +279,18 @@ def greater_than(a, b) -> bool:
 
     return to_number(a) > to_number(b)
 
-def op_greater_than(data=None, a=None, b=None, c=None, *_ignored) -> bool:
-    if c is None:
-        return greater_than(a, b)
-    
-    return greater_than(a, b) and greater_than(b, c)
+def op_greater_than(args: list[JsonValue], data: Any) -> bool|None:
+    if len(args) < 2:
+        return None
+
+    it = iter(args)
+    a = next(it)
+    for b in it:
+        if not greater_than(a, b):
+            return False
+        a = b
+
+    return True
 
 def less_than_or_equal(a, b) -> bool:
     if isinstance(a, NUMERIC):
@@ -278,11 +307,18 @@ def less_than_or_equal(a, b) -> bool:
 
     return to_number(a) <= to_number(b)
 
-def op_less_than_or_equal(data=None, a=None, b=None, c=None, *_ignored) -> bool:
-    if c is None:
-        return less_than_or_equal(a, b)
-    
-    return less_than_or_equal(a, b) and less_than_or_equal(b, c)
+def op_less_than_or_equal(args: list[JsonValue], data: Any) -> bool|None:
+    if len(args) < 2:
+        return None
+
+    it = iter(args)
+    a = next(it)
+    for b in it:
+        if not less_than_or_equal(a, b):
+            return False
+        a = b
+
+    return True
 
 def greater_than_or_equal(a, b) -> bool:
     if isinstance(a, NUMERIC):
@@ -299,13 +335,25 @@ def greater_than_or_equal(a, b) -> bool:
 
     return to_number(a) >= to_number(b)
 
-def op_greater_than_or_equal(data=None, a=None, b=None, c=None, *_ignored) -> bool:
-    if c is None:
-        return greater_than_or_equal(a, b)
-    
-    return greater_than_or_equal(a, b) and greater_than_or_equal(b, c)
+def op_greater_than_or_equal(args: list[JsonValue], data: Any) -> bool|None:
+    if len(args) < 2:
+        return None
 
-def op_substr(data=None, string=None, index=None, length=None, *_ignored) -> str:
+    it = iter(args)
+    a = next(it)
+    for b in it:
+        if not greater_than_or_equal(a, b):
+            return False
+        a = b
+
+    return True
+
+def op_substr(args: list[JsonValue], data: Any) -> str:
+    # TODO: is this the correct default behavior?
+    string = args[0] if len(args) > 0 else None
+    index  = args[1] if len(args) > 1 else None
+    length = args[2] if len(args) > 2 else None
+
     string = to_string(string)
     index  = to_number(index)
 
@@ -340,7 +388,12 @@ def op_substr(data=None, string=None, index=None, length=None, *_ignored) -> str
 
     return string[index:end_index]
 
-def op_substr_utf16(data=None, string=None, index=None, length=None, *_ignored) -> str:
+def op_substr_utf16(args: list[JsonValue], data: Any) -> str:
+    # TODO: is this the correct default behavior?
+    string = args[0] if len(args) > 0 else None
+    index  = args[1] if len(args) > 1 else None
+    length = args[2] if len(args) > 2 else None
+
     string = array('H', to_string(string).encode('UTF-16BE'))
 
     index = to_number(index)
@@ -376,7 +429,7 @@ def op_substr_utf16(data=None, string=None, index=None, length=None, *_ignored) 
 
     return string[index:end_index].tobytes().decode('UTF-16BE', errors='replace')
 
-def op_missing(data=None, *args: Any) -> list[str]:
+def op_missing(args: list[JsonValue], data: Any) -> list[JsonValue]:
     keys: Iterable[Any]
     if args:
         arg0 = args[0]
@@ -387,27 +440,35 @@ def op_missing(data=None, *args: Any) -> list[str]:
     else:
         keys = args
 
-    missing_keys: list[str] = []
+    missing_keys: list[JsonValue] = []
 
     for key in keys:
-        value = op_var(data, key)
+        value = op_var([key], data)
         if value is None or value == '':
             missing_keys.append(key)
 
     return missing_keys
 
-def op_missing_some(data=None, need_count: Any=0, keys: Any=None, *_ignored) -> list[str]:
+def op_missing_some(args: list[JsonValue], data: Any) -> list[JsonValue]:
+    # TODO: is this the correct default behavior?
+    need_count = args[0] if args else 0
+    keys = args[1] if len(args) > 1 else None
+
     if not isinstance(keys, list):
         return []
 
     need_count = to_number(need_count)
-    missing_keys = op_missing(data, keys)
+    missing_keys = op_missing(keys, data)
     if len(keys) - len(missing_keys) >= need_count:
         return []
 
     return missing_keys
 
-def op_var(data=None, key=None, default=None) -> Any:
+def op_var(args: list[JsonValue], data: Any) -> Any:
+    # TODO: is this the correct default behavior?
+    key = args[0] if args else None
+    default = args[1] if len(args) > 1 else None
+
     if key is None or key == '':
         return data
 
@@ -459,7 +520,7 @@ def op_var(data=None, key=None, default=None) -> Any:
 
     return data
 
-def op_merge(data=None, *args: Any) -> list[Any]:
+def op_merge(args: list[JsonValue], data: Any) -> list[Any]:
     items: list[Any] = []
     for arg in args:
         if isinstance(arg, list):
@@ -468,35 +529,65 @@ def op_merge(data=None, *args: Any) -> list[Any]:
             items.append(arg)
     return items
 
-def op_in(data=None, needle=None, haystack=None, *_ignored) -> bool:
+def op_in(args: list[JsonValue], data: Any) -> bool:
+    if len(args) < 2:
+        return False
+
+    needle = args[0]
+    haystack = args[1]
+
     if isinstance(haystack, list):
         return needle in haystack
-        
+
     if isinstance(haystack, str):
         return to_string(needle) in haystack
 
     return False
 
+def op_div(args: list[JsonValue], data: Any) -> float|None:
+    if len(args) != 2:
+        return None
+
+    a = to_number(args[0])
+    b = to_number(args[1])
+
+    if b == 0:
+        return None
+
+    return a / b
+
+def op_mod(args: list[JsonValue], data: Any) -> float|None:
+    if len(args) != 2:
+        return None
+
+    a = to_number(args[0])
+    b = to_number(args[1])
+
+    if b == 0:
+        return None
+
+    return a % b
+
 BUILTINS: Operations = {
     '==':  op_equals,
-    '!=':  lambda data=None, *args: op_not_equals(data, *args),
-    '===': lambda data=None, *args: op_strict_equals(data, *args),
-    '!==': lambda data=None, *args: op_strict_not_equals(data, *args),
+    '!=':  op_not_equals,
+    '===': op_strict_equals,
+    '!==': op_strict_not_equals,
     '<':   op_less_than,
     '>':   op_greater_than,
     '<=':  op_less_than_or_equal,
     '>=':  op_greater_than_or_equal,
-    '!':   lambda data=None, *args: not_(args[0])    if args else None,
-    '!!':  lambda data=None, *args: to_bool(args[0]) if args else None,
+    '!':   lambda args, data: not_(args[0])    if args else None,
+    '!!':  lambda args, data: to_bool(args[0]) if args else None,
     '+':   op_add,
     '*':   op_mul,
-    '-':   lambda data=None, a=None, b=None, *_ignored: -to_number(a) if b is None else to_number(a) - to_number(b),
-    '/':   lambda data=None, a=None, b=None, *_ignored: to_number(a) / to_number(b),
-    '%':   lambda data=None, a=None, b=None, *_ignored: to_number(a) % to_number(b),
+    '-':   lambda args, data: -to_number(args[0]) if len(args) < 2 else to_number(args[0]) - to_number(args[1]),
+    '/':   op_div,
+    '%':   op_mod,
     'in':  op_in,
-    'min': lambda data=None, *args: min(to_number(arg) for arg in args) if args else NAN,
-    'max': lambda data=None, *args: max(to_number(arg) for arg in args) if args else NAN,
-    'cat': lambda data=None, *args: ''.join(to_string(arg) for arg in args),
+    'min': lambda args, data: min(to_number(arg) for arg in args) if args else nan,
+    'max': lambda args, data: max(to_number(arg) for arg in args) if args else nan,
+    'cat': lambda args, data: ''.join(to_string(arg) for arg in args),
     'log': op_log,
     'var': op_var,
     #'val': op_val, # XXX: what is the logic?

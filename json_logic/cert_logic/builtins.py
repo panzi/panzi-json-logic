@@ -6,7 +6,7 @@ from math import isnan
 
 import re
 
-from ..types import Operations
+from ..types import Operations, JsonValue
 from ..builtins import to_number, to_string, op_var, op_in, op_less_than, op_less_than_or_equal, op_greater_than, op_greater_than_or_equal
 
 DATE_PATTERN = re.compile(r'^(\d{4})-(\d{2})-(\d{2})$')
@@ -48,7 +48,8 @@ def not_(value: Any=None) -> bool:
     # dict, date, datetime
     return False
 
-def op_add(data=None, a=None, b=None, *_ignored) -> float:
+def op_add(args: list[JsonValue], data: Any) -> float:
+    a, b = args
     return to_number(a) + to_number(b)
 
 def parse_time(value: Any) -> datetime:
@@ -98,7 +99,11 @@ def to_int(value: Any) -> int:
         return 0
     return int(value)
 
-def op_plus_time(data=None, dtstr=None, value=None, unit=None, *_ignored) -> datetime:
+def op_plus_time(args: list[JsonValue], data: Any) -> datetime:
+    dtstr = args[0] if args else None
+    value = args[1] if len(args) > 1 else None
+    unit  = args[2] if len(args) > 2 else None
+
     dt = parse_time(dtstr)
 
     if unit == 'year':
@@ -123,8 +128,12 @@ def op_plus_time(data=None, dtstr=None, value=None, unit=None, *_ignored) -> dat
 OPTIONAL_PREFIX = "URN:UVCI:"
 UVCI_SPLIT = re.compile('[/#:]')
 
-def op_extract_from_uvci(data=None, uvci=None, index=None, *_ignored) -> Optional[str]:
-    index = to_int(index)
+def op_extract_from_uvci(args: list[JsonValue], data: Any) -> Optional[str]:
+    if not args:
+        return None
+
+    uvci = args[0]
+    index = to_int(args[1]) if len(args) > 1 else 0
     if uvci is None or index < 0:
         return None
 
@@ -135,37 +144,77 @@ def op_extract_from_uvci(data=None, uvci=None, index=None, *_ignored) -> Optiona
     fragments = UVCI_SPLIT.split(uvci)
     return fragments[index] if index < len(fragments) else None
 
-def op_after(data=None, a=None, b=None, c=None, *_ignored):
-    if c is None:
+def op_after(args: list[JsonValue], data: Any):
+    argc = len(args)
+
+    if argc >= 3:
+        a = args[0]
+        b = args[1]
+        c = args[2]
+        return parse_time(a) > parse_time(b) and parse_time(b) > parse_time(c)
+
+    if argc == 2:
+        a = args[0]
+        b = args[1]
         return parse_time(a) > parse_time(b)
 
-    return parse_time(a) > parse_time(b) and parse_time(b) > parse_time(c)
+    return False
 
-def op_before(data=None, a=None, b=None, c=None, *_ignored):
-    if c is None:
+def op_before(args: list[JsonValue], data: Any):
+    argc = len(args)
+
+    if argc >= 3:
+        a = args[0]
+        b = args[1]
+        c = args[2]
+        return parse_time(a) < parse_time(b) and parse_time(b) < parse_time(c)
+
+    if argc == 2:
+        a = args[0]
+        b = args[1]
         return parse_time(a) < parse_time(b)
 
-    return parse_time(a) < parse_time(b) and parse_time(b) < parse_time(c)
+    return False
 
-def op_not_after(data=None, a=None, b=None, c=None, *_ignored):
-    if c is None:
+def op_not_after(args: list[JsonValue], data: Any):
+    argc = len(args)
+
+    if argc >= 3:
+        a = args[0]
+        b = args[1]
+        c = args[2]
+        return parse_time(a) <= parse_time(b) and parse_time(b) <= parse_time(c)
+
+    if argc == 2:
+        a = args[0]
+        b = args[1]
         return parse_time(a) <= parse_time(b)
 
-    return parse_time(a) <= parse_time(b) and parse_time(b) <= parse_time(c)
+    return False
 
-def op_not_before(data=None, a=None, b=None, c=None, *_ignored):
-    if c is None:
+def op_not_before(args: list[JsonValue], data: Any):
+    argc = len(args)
+
+    if argc >= 3:
+        a = args[0]
+        b = args[1]
+        c = args[2]
+        return parse_time(a) >= parse_time(b) and parse_time(b) >= parse_time(c)
+
+    if argc == 2:
+        a = args[0]
+        b = args[1]
         return parse_time(a) >= parse_time(b)
 
-    return parse_time(a) >= parse_time(b) and parse_time(b) >= parse_time(c)
+    return False
 
 BUILTINS: Operations = {
-    '===': lambda data=None, a=None, b=None, *_ignored: a == b,
+    '===': lambda args, data: args[0] == args[1],
     '<':   op_less_than,
     '>':   op_greater_than,
     '<=':  op_less_than_or_equal,
     '>=':  op_greater_than_or_equal,
-    '!':   lambda data=None, a=None, *_ignored: not_(a),
+    '!':   lambda args, data: not_(args[0]),
     '+':   op_add,
     'in':  op_in,
     'var': op_var,

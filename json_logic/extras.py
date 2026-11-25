@@ -1,20 +1,21 @@
-from typing import List
+from typing import Any
 from datetime import datetime, timezone
 
 from .builtins import BUILTINS, to_number
 from .types import Operations, JsonValue
 from .cert_logic.builtins import parse_time
 
-def op_time_since(data=None, timestamp=None, *_ignored) -> float:
+def op_time_since(args: list[JsonValue], data: Any) -> float:
+    timestamp = args[0] if args else None
     dt = parse_time(timestamp)
     return (datetime.utcnow().replace(tzinfo=timezone.utc) - dt).total_seconds() * 1000
 
-def combinations(*lists: List[JsonValue]) -> List[List[JsonValue]]:
-    combinations: List[List[JsonValue]] = []
+def combinations(*lists: list[JsonValue]) -> list[list[JsonValue]]:
+    combinations: list[list[JsonValue]] = []
     list_count = len(lists)
     if list_count > 0:
         stack = [0] * (list_count + 1)
-        item: List[JsonValue] = [None] * list_count
+        item: list[JsonValue] = [None] * list_count
         stack_ptr = 0
 
         while stack_ptr >= 0:
@@ -36,14 +37,14 @@ def combinations(*lists: List[JsonValue]) -> List[List[JsonValue]]:
     return combinations
 
 EXTRAS_ONLY: Operations = {
-    'now':        lambda *_ignored: datetime.utcnow().replace(tzinfo=timezone.utc),
-    'hours':      lambda data=None, value=None, *_ignored: to_number(value) * 60 * 60 * 1000,
-    'days':       lambda data=None, value=None, *_ignored: to_number(value) * 24 * 60 * 60 * 1000,
-    'parseTime':  lambda data=None, value=None, *_ignored: parse_time(value),
-    'formatTime': lambda data=None, value=None, *_ignored: parse_time(value).isoformat(),
+    'now':        lambda args, data: datetime.utcnow().replace(tzinfo=timezone.utc),
+    'hours':      lambda args, data: to_number(args[0]) * 60 * 60 * 1000 if args else 0,
+    'days':       lambda args, data: to_number(args[0]) * 24 * 60 * 60 * 1000 if args else 0,
+    'parseTime':  lambda args, data: parse_time(args[0]) if args else None,
+    'formatTime': lambda args, data: parse_time(args[0]).isoformat() if args else None,
     'timeSince':  op_time_since,
-    'combinations': lambda data=None, *lists: combinations(*lists), # type: ignore
-    'zip': lambda data=None, *lists: [list(item) for item in zip(*lists)],
+    'combinations': lambda args, data: combinations(*args), # type: ignore
+    'zip': lambda args, data: [list(item) for item in zip(*args)],
 }
 
 EXTRAS: Operations = {
