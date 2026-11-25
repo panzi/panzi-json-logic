@@ -71,7 +71,7 @@ def apply(logic: JsonValue, data: JsonValue=None, operations: Operations=BUILTIN
 
         items    = apply(args[0], data, operations)
         sublogic = args[1] if argc > 1 else None
-        init     = args[2] if argc > 2 else None
+        init     = apply(args[2], data, operations) if argc > 2 else None
 
         if not isinstance(items, list):
             return init
