@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List
 from datetime import datetime, timezone
 
 from .builtins import BUILTINS, to_number

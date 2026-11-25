@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Iterable, Union
+from typing import Any, Iterable, Union
 from datetime import date, datetime, time, timezone
 from time import mktime
 from wsgiref.handlers import format_date_time
@@ -16,7 +16,13 @@ NAN = float('nan')
 NUMERIC = (int, float)
 EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
-def op_equals(data=None, a=None, b=None, *_ignored) -> bool:
+def op_equals(data=None, *args) -> bool|None:
+    if len(args) < 2:
+        return None
+
+    a = args[0]
+    b = args[1]
+
     atype = type(a)
     if atype is type(b):
         if atype in (list, dict):
@@ -59,6 +65,38 @@ def op_equals(data=None, a=None, b=None, *_ignored) -> bool:
         raise TypeError
 
     raise TypeError
+
+def op_not_equals(data=None, *args) -> bool|None:
+    res = op_equals(data, *args)
+
+    if res is None:
+        return None
+
+    return not res
+
+def op_strict_equals(data=None, *args) -> bool|None:
+    if len(args) < 2:
+        return None
+
+    a = args[0]
+    b = args[1]
+
+    if type(a) is not type(b):
+        return False
+
+    return a == b
+
+def op_strict_not_equals(data=None, *args) -> bool|None:
+    if len(args) < 2:
+        return None
+
+    a = args[0]
+    b = args[1]
+
+    if type(a) is not type(b):
+        return True
+
+    return a != b
 
 def to_number(a: Any) -> Union[float, int]:
     if isinstance(a, NUMERIC):
@@ -338,7 +376,7 @@ def op_substr_utf16(data=None, string=None, index=None, length=None, *_ignored) 
 
     return string[index:end_index].tobytes().decode('UTF-16BE', errors='replace')
 
-def op_missing(data=None, *args: Any) -> List[str]:
+def op_missing(data=None, *args: Any) -> list[str]:
     keys: Iterable[Any]
     if args:
         arg0 = args[0]
@@ -349,7 +387,7 @@ def op_missing(data=None, *args: Any) -> List[str]:
     else:
         keys = args
 
-    missing_keys: List[str] = []
+    missing_keys: list[str] = []
 
     for key in keys:
         value = op_var(data, key)
@@ -358,7 +396,7 @@ def op_missing(data=None, *args: Any) -> List[str]:
 
     return missing_keys
 
-def op_missing_some(data=None, need_count: Any=0, keys: Any=None, *_ignored) -> List[str]:
+def op_missing_some(data=None, need_count: Any=0, keys: Any=None, *_ignored) -> list[str]:
     if not isinstance(keys, list):
         return []
 
@@ -366,7 +404,7 @@ def op_missing_some(data=None, need_count: Any=0, keys: Any=None, *_ignored) -> 
     missing_keys = op_missing(data, keys)
     if len(keys) - len(missing_keys) >= need_count:
         return []
-    
+
     return missing_keys
 
 def op_var(data=None, key=None, default=None) -> Any:
@@ -393,7 +431,7 @@ def op_var(data=None, key=None, default=None) -> Any:
         else:
             return default
 
-    props: List[str] = to_string(key).split('.')
+    props: list[str] = to_string(key).split('.')
 
     for prop in props:
         if isinstance(data, (list, str)):
@@ -421,8 +459,8 @@ def op_var(data=None, key=None, default=None) -> Any:
 
     return data
 
-def op_merge(data=None, *args: Any) -> List[Any]:
-    items: List[Any] = []
+def op_merge(data=None, *args: Any) -> list[Any]:
+    items: list[Any] = []
     for arg in args:
         if isinstance(arg, list):
             items.extend(arg)
@@ -441,15 +479,15 @@ def op_in(data=None, needle=None, haystack=None, *_ignored) -> bool:
 
 BUILTINS: Operations = {
     '==':  op_equals,
-    '!=':  lambda data=None, a=None, b=None, *_ignored: not op_equals(data, a, b),
-    '===': lambda data=None, a=None, b=None, *_ignored: a == b,
-    '!==': lambda data=None, a=None, b=None, *_ignored: a != b,
+    '!=':  lambda data=None, *args: op_not_equals(data, *args),
+    '===': lambda data=None, *args: op_strict_equals(data, *args),
+    '!==': lambda data=None, *args: op_strict_not_equals(data, *args),
     '<':   op_less_than,
     '>':   op_greater_than,
     '<=':  op_less_than_or_equal,
     '>=':  op_greater_than_or_equal,
-    '!':   lambda data=None, a=None, *_ignored: not_(a),
-    '!!':  lambda data=None, a=None, *_ignored: to_bool(a),
+    '!':   lambda data=None, *args: not_(args[0])    if args else None,
+    '!!':  lambda data=None, *args: to_bool(args[0]) if args else None,
     '+':   op_add,
     '*':   op_mul,
     '-':   lambda data=None, a=None, b=None, *_ignored: -to_number(a) if b is None else to_number(a) - to_number(b),
@@ -461,6 +499,7 @@ BUILTINS: Operations = {
     'cat': lambda data=None, *args: ''.join(to_string(arg) for arg in args),
     'log': op_log,
     'var': op_var,
+    #'val': op_val, # XXX: what is the logic?
     'substr':       op_substr,
     'merge':        op_merge,
     'missing':      op_missing, # type: ignore

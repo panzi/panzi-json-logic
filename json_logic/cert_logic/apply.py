@@ -1,5 +1,3 @@
-from typing import Dict
-
 from ..types import JsonValue, Operations
 from .builtins import BUILTINS, to_bool, not_
 
@@ -50,7 +48,7 @@ def apply(logic: JsonValue, data: JsonValue=None, operations: Operations=BUILTIN
         if not isinstance(items, list):
             return init
 
-        context: Dict[str, JsonValue] = {
+        context: dict[str, JsonValue] = {
             'accumulator': init,
             'data':        data,
         }

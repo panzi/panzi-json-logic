@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Optional
-from datetime import datetime, date, time, timedelta, timezone, tzinfo
+from datetime import datetime, date, time, timedelta, timezone
 from math import isnan
 
 import re
